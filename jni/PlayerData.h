@@ -19,6 +19,7 @@ extern "C" {
 #include <libavcodec/avcodec.h>
 #include <libavformat/avformat.h>
 #include <libswscale/swscale.h>
+#include <libswresample/swresample.h>
 }
 
 #ifndef PLAYERDATA_H_
@@ -40,13 +41,14 @@ public:
 
 	ANativeWindow		*window = NULL;
 
-	AVFormatContext 		*formatCtx = NULL;
+	AVFormatContext 	*formatCtx = NULL;
 	AVCodecContext		*audioCodecCtx = NULL;
 	AVCodecContext		*videoCodecCtx = NULL;
 	AVFrame				*decodedFrame = NULL;
 	AVFrame				*frameRGBA = NULL;
 	uint8_t				*buffer = NULL;
 	SwsContext			*swsCtx = NULL;
+	SwrContext			*swrCtx = NULL;
 
 	std::queue<uint8_t *>	videoQueue;
 	std::queue<uint8_t *>	audioQueue;

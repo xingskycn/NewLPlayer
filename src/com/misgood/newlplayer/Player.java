@@ -47,7 +47,8 @@ public class Player {
 
 	private int mAudioTrackBufferSize;
 	private AudioTrack mAudioTrack;
-
+	private byte[] mAudioBuffer;
+	
 	private OnPreparedListener mOnPreparedListener;
 
 	private boolean isPrepared;
@@ -161,7 +162,8 @@ public class Player {
 		Log.i(TAG, "sample rate: " + mSampleRate);
 		mAudioTrackBufferSize = AudioTrack.getMinBufferSize(mSampleRate, channelConfig, AudioFormat.ENCODING_PCM_16BIT);
 		mAudioTrack = new AudioTrack(AudioManager.STREAM_MUSIC, mSampleRate, channelConfig, AudioFormat.ENCODING_PCM_16BIT, mAudioTrackBufferSize, AudioTrack.MODE_STREAM);
-
+		mAudioBuffer = new byte[mAudioTrackBufferSize];
+		
 		// prepare success
 		isPrepared = true;
 		if( mOnPreparedListener != null ) {
@@ -177,7 +179,6 @@ public class Player {
 			mPlayerTimer = new Timer();
 			mDisplayTask = new DisplayTask();
 			mPlayerTimer.scheduleAtFixedRate(mDisplayTask, 0, (long) (1000/mFps));
-			audioTrackStart();
 		}
 		else {
 			Log.w(TAG, "video is not prepared");
@@ -221,6 +222,7 @@ public class Player {
 	// call by native
 	private void audioTrackWrite(byte[] audioData, int offsetInBytes, int sizeInBytes) {
 		if (mAudioTrack != null) {
+			audioTrackStart();
 			int written;
 			while (sizeInBytes > 0) {
 				written = sizeInBytes > mAudioTrackBufferSize ? mAudioTrackBufferSize : sizeInBytes;
@@ -268,10 +270,6 @@ public class Player {
 	private native void naTest();
 
 	static {
-		System.loadLibrary("avutil-52");
-		System.loadLibrary("avcodec-55");
-		System.loadLibrary("avformat-55");
-		System.loadLibrary("swscale-2");
 		System.loadLibrary("player");
 	}
 }
