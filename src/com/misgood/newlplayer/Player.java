@@ -41,7 +41,7 @@ public class Player {
 	private int mSampleRate;
 
 	private DecodeTask mDecodeTask;
-	private WriteAudioTask mWriteAudioTask;
+	//private WriteAudioTask mWriteAudioTask;
 	
 	private Timer mPlayerTimer;
 	private TimerTask mDisplayTask;
@@ -78,6 +78,7 @@ public class Player {
 		}
 		@Override
 		protected Object doInBackground(Object... params) {
+			Log.d(TAG, "start DecodeTask");
 			naDecode();
 			return null;
 		}
@@ -91,9 +92,11 @@ public class Player {
 		}
 	}
 
+	/*
 	class WriteAudioTask extends AsyncTask<Object, Object, Object> {
 		@Override
 		protected Object doInBackground(Object... params) {
+			Log.d(TAG, "start WriteAudioTask");
 			while(true) {
 				byte[] data = naGetAudioData();
 				if(isDecodeComplete && data == null) {
@@ -104,11 +107,14 @@ public class Player {
 					Log.d(TAG, "audio data len: " + data.length);
 					audioTrackWrite(data, 0, data.length);
 				}
+				else {
+					Log.d(TAG, "audio data is null");
+				}
 			}
 			return null;
 		}
 	}
-	
+	*/
 	/*
 	class PrepareTask extends AsyncTask<Object, Object, Integer> {
 		@Override
@@ -240,8 +246,11 @@ public class Player {
 			isPlay = true;
 			mDecodeTask = new DecodeTask();
 			mDecodeTask.execute();
-			mWriteAudioTask = new WriteAudioTask();
-			mWriteAudioTask.execute();
+			
+			
+			//mWriteAudioTask = new WriteAudioTask();
+			//mWriteAudioTask.execute();
+			
 			mPlayerTimer = new Timer();
 			mDisplayTask = new DisplayTask();
 			mPlayerTimer.scheduleAtFixedRate(mDisplayTask, 0, (long) (1000/mFps));
@@ -287,6 +296,7 @@ public class Player {
 
 	// call by native
 	private void audioTrackWrite(byte[] audioData, int offsetInBytes, int sizeInBytes) {
+		Log.d(TAG, "audioTrackWrite");
 		if (mAudioTrack != null) {
 			audioTrackStart();
 			int written;
@@ -297,9 +307,13 @@ public class Player {
 				offsetInBytes += written;
 			}
 		}
+		else {
+			Log.d(TAG, "AudioTrack is null");
+		}
 	}
 
 	private void audioTrackStart() {
+		Log.d(TAG, "audioTrackStart");
 		if (mAudioTrack != null && 
 				mAudioTrack.getState() == AudioTrack.STATE_INITIALIZED && 
 				mAudioTrack.getPlayState() != AudioTrack.PLAYSTATE_PLAYING){
@@ -316,6 +330,7 @@ public class Player {
 	 */
 
 	private void audioTrackRelease() {
+		Log.d(TAG, "audioTrackRelease");
 		if (mAudioTrack != null) {
 			if (mAudioTrack.getState() == AudioTrack.STATE_INITIALIZED)
 				mAudioTrack.stop();

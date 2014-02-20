@@ -22,13 +22,37 @@ extern "C" {
 #include <libswresample/swresample.h>
 }
 
+template<class T>
+class BlockingQueue{
+public:
+	BlockingQueue();
+	~BlockingQueue();
+	void push(T);
+	void pop();
+	bool empty();
+	int size();
+	const T front();
+
+private:
+	pthread_mutex_t lock;
+	std::queue<T> queue;
+};
+
+class QueueData {
+public:
+	QueueData(uint8_t *, int);
+	~QueueData();
+	uint8_t	*buffer;
+	int		size;
+};
+
 #ifndef PLAYERDATA_H_
 #define PLAYERDATA_H_
 
 class PlayerData {
 public:
 	PlayerData(JNIEnv *, jobject);
-	virtual ~PlayerData();
+	~PlayerData();
 
 	JNIEnv				*env = NULL;
 	jobject				thiz;
@@ -50,11 +74,8 @@ public:
 	SwsContext			*swsCtx = NULL;
 	SwrContext			*swrCtx = NULL;
 
-	std::queue<uint8_t *>	videoQueue;
-	std::queue<uint8_t *>	audioQueue;
-
-	pthread_mutex_t		videoQueueLock;
-	pthread_mutex_t		audioQueueLock;
+	BlockingQueue<QueueData>	videoQueue;
+	BlockingQueue<QueueData>	audioQueue;
 
 	bool				stop = false;
 };
