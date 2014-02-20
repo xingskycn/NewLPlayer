@@ -75,6 +75,9 @@ obj/local/armeabi/objs/player/player.o: jni/player.cpp \
  /home/misgood/android-ndk-r9c/sources/ffmpeg/android/arm/include/libavutil/pixdesc.h \
  /home/misgood/android-ndk-r9c/sources/ffmpeg/android/arm/include/libavutil/mem.h \
  /home/misgood/android-ndk-r9c/sources/ffmpeg/android/arm/include/libavutil/error.h \
+ /home/misgood/android-ndk-r9c/sources/ffmpeg/android/arm/include/libavutil/opt.h \
+ /home/misgood/android-ndk-r9c/sources/ffmpeg/android/arm/include/libavutil/dict.h \
+ /home/misgood/android-ndk-r9c/sources/ffmpeg/android/arm/include/libavutil/samplefmt.h \
  /home/misgood/android-ndk-r9c/sources/ffmpeg/android/arm/include/libavcodec/avcodec.h \
  /home/misgood/android-ndk-r9c/sources/ffmpeg/android/arm/include/libavutil/samplefmt.h \
  /home/misgood/android-ndk-r9c/sources/ffmpeg/android/arm/include/libavutil/attributes.h \
@@ -85,8 +88,6 @@ obj/local/armeabi/objs/player/player.o: jni/player.cpp \
  /home/misgood/android-ndk-r9c/sources/ffmpeg/android/arm/include/libavutil/dict.h \
  /home/misgood/android-ndk-r9c/sources/ffmpeg/android/arm/include/libavutil/frame.h \
  /home/misgood/android-ndk-r9c/sources/ffmpeg/android/arm/include/libavutil/buffer.h \
- /home/misgood/android-ndk-r9c/sources/ffmpeg/android/arm/include/libavutil/dict.h \
- /home/misgood/android-ndk-r9c/sources/ffmpeg/android/arm/include/libavutil/samplefmt.h \
  /home/misgood/android-ndk-r9c/sources/ffmpeg/android/arm/include/libavutil/log.h \
  /home/misgood/android-ndk-r9c/sources/ffmpeg/android/arm/include/libavutil/pixfmt.h \
  /home/misgood/android-ndk-r9c/sources/ffmpeg/android/arm/include/libavutil/rational.h \
@@ -256,6 +257,12 @@ obj/local/armeabi/objs/player/player.o: jni/player.cpp \
 
 /home/misgood/android-ndk-r9c/sources/ffmpeg/android/arm/include/libavutil/error.h:
 
+/home/misgood/android-ndk-r9c/sources/ffmpeg/android/arm/include/libavutil/opt.h:
+
+/home/misgood/android-ndk-r9c/sources/ffmpeg/android/arm/include/libavutil/dict.h:
+
+/home/misgood/android-ndk-r9c/sources/ffmpeg/android/arm/include/libavutil/samplefmt.h:
+
 /home/misgood/android-ndk-r9c/sources/ffmpeg/android/arm/include/libavcodec/avcodec.h:
 
 /home/misgood/android-ndk-r9c/sources/ffmpeg/android/arm/include/libavutil/samplefmt.h:
@@ -275,10 +282,6 @@ obj/local/armeabi/objs/player/player.o: jni/player.cpp \
 /home/misgood/android-ndk-r9c/sources/ffmpeg/android/arm/include/libavutil/frame.h:
 
 /home/misgood/android-ndk-r9c/sources/ffmpeg/android/arm/include/libavutil/buffer.h:
-
-/home/misgood/android-ndk-r9c/sources/ffmpeg/android/arm/include/libavutil/dict.h:
-
-/home/misgood/android-ndk-r9c/sources/ffmpeg/android/arm/include/libavutil/samplefmt.h:
 
 /home/misgood/android-ndk-r9c/sources/ffmpeg/android/arm/include/libavutil/log.h:
 

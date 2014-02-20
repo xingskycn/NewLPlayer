@@ -13,11 +13,11 @@ extern "C" {
 #include <libavutil/imgutils.h>
 #include <libavutil/mem.h>
 #include <libavutil/error.h>
+#include <libavutil/opt.h>
 #include <libavcodec/avcodec.h>
 #include <libavformat/avformat.h>
 #include <libswscale/swscale.h>
 #include <libswresample/swresample.h>
-#include <libavutil/opt.h>
 }
 
 #include "player.h"
@@ -121,7 +121,7 @@ void setSurface(PlayerData *pd, jobject pSurface) {
 
 JNIEXPORT jint JNICALL Java_com_misgood_newlplayer_Player_naSetup
 (JNIEnv * pEnv, jobject pObj, jstring pFileName, jobject pSurface) {
-	jint hashCode				= getHashCode(pEnv, pObj);
+	jint hashCode			= getHashCode(pEnv, pObj);
 	PlayerData *playerData	= playerMap.find(hashCode)->second;
 	AVCodec *pVideoCodec	= NULL;
 	AVCodec *pAudioCodec	= NULL;
@@ -223,19 +223,21 @@ JNIEXPORT jint JNICALL Java_com_misgood_newlplayer_Player_naSetup
 			LOGE("cannot open codec %s.", playerData->audioCodecCtx->codec_name);
 			return ERROR_CANT_OPEN_DECODER;
 		}
-		if(!(playerData->swrCtx = swr_alloc())) {
-			LOGE("cannot allocate swr context");
-			return ERROR_CANT_ALLOCATE_SWR_CONTEXT;
-		}
-		av_opt_set_int(playerData->swrCtx, "in_channel_layout",  playerData->audioCodecCtx->channel_layout, 0);
-		av_opt_set_int(playerData->swrCtx, "out_channel_layout", playerData->audioCodecCtx->channel_layout, 0);
-		av_opt_set_int(playerData->swrCtx, "in_sample_rate",     playerData->audioCodecCtx->sample_rate, 0);
-		av_opt_set_int(playerData->swrCtx, "out_sample_rate",    playerData->audioCodecCtx->sample_rate, 0);
-		av_opt_set_sample_fmt(playerData->swrCtx, "in_sample_fmt",  AV_SAMPLE_FMT_FLTP, 0);
-		av_opt_set_sample_fmt(playerData->swrCtx, "out_sample_fmt", AV_SAMPLE_FMT_S16,  0);
-		if( swr_init(playerData->swrCtx) < 0 ) {
-			LOGE("initialize swr context fail");
-			return ERROR_INIT_SWR_CONTEXT_FAIL;
+		if(playerData->audioCodecCtx->sample_fmt != AV_SAMPLE_FMT_S16) {
+			if( !(playerData->swrCtx = swr_alloc()) ) {
+				LOGE("cannot allocate swr context");
+				return ERROR_CANT_ALLOCATE_SWR_CONTEXT;
+			}
+			av_opt_set_int(playerData->swrCtx, "in_channel_layout", playerData->audioCodecCtx->channel_layout, 0);
+			av_opt_set_int(playerData->swrCtx, "out_channel_layout", playerData->audioCodecCtx->channel_layout, 0);
+			av_opt_set_int(playerData->swrCtx, "in_sample_rate", playerData->audioCodecCtx->sample_rate, 0);
+			av_opt_set_int(playerData->swrCtx, "out_sample_rate", playerData->audioCodecCtx->sample_rate, 0);
+			av_opt_set_sample_fmt(playerData->swrCtx, "in_sample_fmt", playerData->audioCodecCtx->sample_fmt, 0);
+			av_opt_set_sample_fmt(playerData->swrCtx, "out_sample_fmt", AV_SAMPLE_FMT_S16,  0);
+			if( swr_init(playerData->swrCtx) < 0 ) {
+				LOGE("cannot initialize swr context");
+				return ERROR_INIT_SWR_CONTEXT_FAIL;
+			}
 		}
 	}
 
@@ -250,11 +252,12 @@ JNIEXPORT jint JNICALL Java_com_misgood_newlplayer_Player_naSetup
 
 JNIEXPORT void JNICALL Java_com_misgood_newlplayer_Player_naDecode
 (JNIEnv * pEnv, jobject pObj) {
-	jint hashCode				= getHashCode(pEnv, pObj);
+	jint hashCode			= getHashCode(pEnv, pObj);
 	PlayerData *playerData	= playerMap.find(hashCode)->second;
-	AVPacket	 packet;
+	AVPacket packet;
 	int frameCount			= 0;
 	int frameFinished;
+	uint8_t **resampledData;
 
 	LOGD("naDecode start");
 	playerData->stop = 0;
@@ -295,22 +298,32 @@ JNIEXPORT void JNICALL Java_com_misgood_newlplayer_Player_naDecode
 				LOGE("error decoding audio frame");
 			}
 			if(frameFinished) {
-				int bufferSize = av_samples_get_buffer_size(NULL, playerData->audioCodecCtx->channels, playerData->decodedFrame->nb_samples, playerData->audioCodecCtx->sample_fmt, 1);
-				swr_convert(&outputBuffer, audioFrame->nb_samples, audioFrame->extended_data, audioFrame->nb_samples);
-
-				/*
-				jbyteArray buffer = pEnv->NewByteArray(bufferSize);
-				pEnv->SetByteArrayRegion(buffer, 0, bufferSize, (signed char *)playerData->decodedFrame->data);
-				jclass cls = pEnv->GetObjectClass(pObj);
-				jmethodID mid = pEnv->GetMethodID(cls, "audioTrackWrite", "([BII)V");
-				if( mid == 0 ) {
-					LOGE("cannot call audioTrackWrite");
-					continue;
+				if( av_samples_alloc_array_and_samples(&resampledData, NULL, playerData->audioCodecCtx->channels, playerData->decodedFrame->nb_samples, AV_SAMPLE_FMT_S16, 0) < 0 ) {
+					LOGE("cannot allocate audio array");
+					return;
 				}
-				pEnv->CallVoidMethod(pObj, mid, buffer, 0, bufferSize);
-				 */
+				else{
+					swr_convert(playerData->swrCtx, resampledData, playerData->decodedFrame->nb_samples, (uint8_t const **) playerData->decodedFrame->extended_data, playerData->decodedFrame->nb_samples);
+					int bufferSize = av_samples_get_buffer_size(NULL, playerData->audioCodecCtx->channels, playerData->decodedFrame->nb_samples, AV_SAMPLE_FMT_S16, 0);
+					uint8_t *tmp = (uint8_t *) malloc(bufferSize*sizeof(uint8_t));
+					memcpy(tmp, resampledData[0], bufferSize);
+					pthread_mutex_lock(&playerData->audioQueueLock);
+					playerData->audioQueue.push(tmp);
+					pthread_mutex_unlock(&playerData->audioQueueLock);
+					/*
+					jbyteArray buffer = pEnv->NewByteArray(bufferSize);
+					pEnv->SetByteArrayRegion(buffer, 0, bufferSize, (const signed char *) resampledData[0]);
+					jclass cls = pEnv->GetObjectClass(pObj);
+					jmethodID mid = pEnv->GetMethodID(cls, "audioTrackWrite", "([BII)V");
+					if( mid == 0 ) {
+						LOGE("cannot call audioTrackWrite");
+						continue;
+					}
+					pEnv->CallVoidMethod(pObj, mid, buffer, 0, bufferSize);
+					 */
+					av_free(resampledData[0]);
+				}
 			}
-
 		}
 		// Free the packet that was allocated by av_read_frame
 		av_free_packet(&packet);
@@ -323,6 +336,29 @@ JNIEXPORT void JNICALL Java_com_misgood_newlplayer_Player_naDecode
 	LOGD("total No. of frames decoded %d", frameCount);
 }
 
+JNIEXPORT jbyteArray JNICALL Java_com_misgood_newlplayer_Player_naGetAudioData
+(JNIEnv *pEnv, jobject pObj) {
+	jint hashCode = getHashCode(pEnv, pObj);
+	PlayerData *playerData = playerMap.find(hashCode)->second;
+	uint8_t *buffer;
+	jbyteArray byteArray;
+
+	pthread_mutex_lock(&playerData->audioQueueLock);
+	if(playerData->audioQueue.empty()) {
+		LOGD("audio queue is empty");
+		pthread_mutex_unlock(&playerData->audioQueueLock);
+		return NULL;
+	}
+	else {
+		buffer = playerData->audioQueue.front();
+		pthread_mutex_unlock(&playerData->audioQueueLock);
+		int bufferSize = av_samples_get_buffer_size(NULL, playerData->audioCodecCtx->channels, playerData->decodedFrame->nb_samples, AV_SAMPLE_FMT_S16, 0);
+		byteArray = pEnv->NewByteArray(bufferSize);
+		pEnv->SetByteArrayRegion(byteArray, 0, bufferSize, (const signed char *) buffer);
+		return byteArray;
+	}
+}
+
 JNIEXPORT jint JNICALL Java_com_misgood_newlplayer_Player_naDisplay
 (JNIEnv * pEnv, jobject pObj) {
 	jint hashCode = getHashCode(pEnv, pObj);
@@ -332,7 +368,7 @@ JNIEXPORT jint JNICALL Java_com_misgood_newlplayer_Player_naDisplay
 
 	pthread_mutex_lock(&playerData->videoQueueLock);
 	if( playerData->videoQueue.empty() ) {
-		LOGD("queue is empty");
+		LOGD("video queue is empty");
 		pthread_mutex_unlock(&playerData->videoQueueLock);
 		return ERROR_QUEUE_IS_EMPTY;
 	}
@@ -379,6 +415,8 @@ JNIEXPORT void JNICALL Java_com_misgood_newlplayer_Player_naRelease
 	avcodec_close(playerData->videoCodecCtx);
 	// Close the video file
 	avformat_close_input(&playerData->formatCtx);
+	// Free SWRContext
+	swr_free(&playerData->swrCtx);
 	// Free frame queue
 	std::queue<uint8_t*> empty;
 	std::swap( playerData->videoQueue, empty );

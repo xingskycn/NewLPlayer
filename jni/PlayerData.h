@@ -56,7 +56,7 @@ public:
 	pthread_mutex_t		videoQueueLock;
 	pthread_mutex_t		audioQueueLock;
 
-	bool				stop = 0;
+	bool				stop = false;
 };
 
 #endif /* PLAYERDATA_H_ */

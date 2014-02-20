@@ -41,14 +41,15 @@ public class Player {
 	private int mSampleRate;
 
 	private DecodeTask mDecodeTask;
-
+	private WriteAudioTask mWriteAudioTask;
+	
 	private Timer mPlayerTimer;
 	private TimerTask mDisplayTask;
 
 	private int mAudioTrackBufferSize;
 	private AudioTrack mAudioTrack;
 	private byte[] mAudioBuffer;
-	
+
 	private OnPreparedListener mOnPreparedListener;
 
 	private boolean isPrepared;
@@ -89,6 +90,69 @@ public class Player {
 			naRelease();
 		}
 	}
+
+	class WriteAudioTask extends AsyncTask<Object, Object, Object> {
+		@Override
+		protected Object doInBackground(Object... params) {
+			while(true) {
+				byte[] data = naGetAudioData();
+				if(isDecodeComplete && data == null) {
+					audioTrackWrite(null, 0, 0);
+					break;
+				}
+				if(data != null) {
+					Log.d(TAG, "audio data len: " + data.length);
+					audioTrackWrite(data, 0, data.length);
+				}
+			}
+			return null;
+		}
+	}
+	
+	/*
+	class PrepareTask extends AsyncTask<Object, Object, Integer> {
+		@Override
+		protected Integer doInBackground(Object... arg0) {
+			return naSetup(mPath, mSurface);
+		}
+		protected void onPostExecute(Integer result) {
+			if(result != 0) {
+				Log.e(TAG, "native setup fail");
+				return;
+			}
+			// Video
+			int[] videoRes = naGetVideoRes();
+			if( videoRes == null ) {
+				Log.e(TAG, "native get video resolution fail");
+				return;
+			}
+			mVideoWidth = videoRes[0];
+			mVideoHeight = videoRes[1];
+			Log.i(TAG, "video width " + mVideoWidth + ", height " + mVideoHeight);
+			mFps = naGetFps();
+			if( mFps == 0 ) {
+				Log.e(TAG, "cannot get fps");
+				return;
+			}
+			Log.i(TAG, "fps: "+ mFps);
+			resetVideoSize();
+
+			// Audio
+			int channelConfig = naGetChannels() >= 2 ? AudioFormat.CHANNEL_OUT_STEREO : AudioFormat.CHANNEL_OUT_MONO;
+			mSampleRate = naGetSampleRate();
+			Log.i(TAG, "sample rate: " + mSampleRate);
+			mAudioTrackBufferSize = AudioTrack.getMinBufferSize(mSampleRate, channelConfig, AudioFormat.ENCODING_PCM_16BIT);
+			mAudioTrack = new AudioTrack(AudioManager.STREAM_MUSIC, mSampleRate, channelConfig, AudioFormat.ENCODING_PCM_16BIT, mAudioTrackBufferSize, AudioTrack.MODE_STREAM);
+			mAudioBuffer = new byte[mAudioTrackBufferSize];
+
+			// prepare success
+			isPrepared = true;
+			if( mOnPreparedListener != null ) {
+				mOnPreparedListener.onPrepared();
+			}
+		}
+	}
+	 */
 
 	public Player(Context ctx) {
 		this.mContext = ctx;
@@ -133,12 +197,12 @@ public class Player {
 
 	public void prepare() {
 		Log.d(TAG, "prepare");
+		//new PrepareTask().execute();
 
-		if( naSetup(mPath, mSurface) != 0 ) {
+		if(naSetup(mPath, mSurface) != 0) {
 			Log.e(TAG, "native setup fail");
 			return;
 		}
-
 		// Video
 		int[] videoRes = naGetVideoRes();
 		if( videoRes == null ) {
@@ -147,7 +211,7 @@ public class Player {
 		}
 		mVideoWidth = videoRes[0];
 		mVideoHeight = videoRes[1];
-		Log.i(TAG, "video width " + this.mVideoWidth + ", height " + this.mVideoHeight);
+		Log.i(TAG, "video width " + mVideoWidth + ", height " + mVideoHeight);
 		mFps = naGetFps();
 		if( mFps == 0 ) {
 			Log.e(TAG, "cannot get fps");
@@ -163,7 +227,7 @@ public class Player {
 		mAudioTrackBufferSize = AudioTrack.getMinBufferSize(mSampleRate, channelConfig, AudioFormat.ENCODING_PCM_16BIT);
 		mAudioTrack = new AudioTrack(AudioManager.STREAM_MUSIC, mSampleRate, channelConfig, AudioFormat.ENCODING_PCM_16BIT, mAudioTrackBufferSize, AudioTrack.MODE_STREAM);
 		mAudioBuffer = new byte[mAudioTrackBufferSize];
-		
+
 		// prepare success
 		isPrepared = true;
 		if( mOnPreparedListener != null ) {
@@ -176,6 +240,8 @@ public class Player {
 			isPlay = true;
 			mDecodeTask = new DecodeTask();
 			mDecodeTask.execute();
+			mWriteAudioTask = new WriteAudioTask();
+			mWriteAudioTask.execute();
 			mPlayerTimer = new Timer();
 			mDisplayTask = new DisplayTask();
 			mPlayerTimer.scheduleAtFixedRate(mDisplayTask, 0, (long) (1000/mFps));
@@ -237,6 +303,7 @@ public class Player {
 		if (mAudioTrack != null && 
 				mAudioTrack.getState() == AudioTrack.STATE_INITIALIZED && 
 				mAudioTrack.getPlayState() != AudioTrack.PLAYSTATE_PLAYING){
+			Log.d(TAG, "start play audio");
 			mAudioTrack.play();
 		}
 	}
@@ -264,6 +331,7 @@ public class Player {
 	private native int naGetSampleRate();
 	private native int naGetChannels();
 	private native void naDecode();
+	private native byte[] naGetAudioData();
 	private native int naDisplay();
 	private native void naStopDecode();
 	private native void naRelease();

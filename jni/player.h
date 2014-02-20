@@ -65,6 +65,14 @@ JNIEXPORT void JNICALL Java_com_misgood_newlplayer_Player_naDecode
 
 /*
  * Class:     com_misgood_newlplayer_Player
+ * Method:    naGetAudioData
+ * Signature: ()[B
+ */
+JNIEXPORT jbyteArray JNICALL Java_com_misgood_newlplayer_Player_naGetAudioData
+  (JNIEnv *, jobject);
+
+/*
+ * Class:     com_misgood_newlplayer_Player
  * Method:    naDisplay
  * Signature: ()I
  */
@@ -133,6 +141,17 @@ extern "C" {
 
 #ifndef _Included_com_misgood_newlplayer_Player_OnPreparedListener
 #define _Included_com_misgood_newlplayer_Player_OnPreparedListener
+#ifdef __cplusplus
+extern "C" {
+#endif
+#ifdef __cplusplus
+}
+#endif
+#endif
+/* Header for class com_misgood_newlplayer_Player_WriteAudioTask */
+
+#ifndef _Included_com_misgood_newlplayer_Player_WriteAudioTask
+#define _Included_com_misgood_newlplayer_Player_WriteAudioTask
 #ifdef __cplusplus
 extern "C" {
 #endif
