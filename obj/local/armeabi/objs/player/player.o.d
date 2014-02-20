@@ -102,8 +102,9 @@ obj/local/armeabi/objs/player/player.o: jni/player.cpp \
  /home/misgood/android-ndk-r9c/sources/ffmpeg/android/arm/include/libswscale/version.h \
  /home/misgood/android-ndk-r9c/sources/ffmpeg/android/arm/include/libswresample/swresample.h \
  /home/misgood/android-ndk-r9c/sources/ffmpeg/android/arm/include/libswresample/version.h \
- jni/player.h jni/error.h jni/PlayerData.h \
- /home/misgood/android-ndk-r9c/sources/cxx-stl/gnu-libstdc++/4.8/include/queue
+ jni/player.h jni/error.h jni/PlayerData.h jni/BlockingQueue.h \
+ /home/misgood/android-ndk-r9c/sources/cxx-stl/gnu-libstdc++/4.8/include/queue \
+ jni/QueueData.h
 
 /home/misgood/android-ndk-r9c/platforms/android-19/arch-arm/usr/include/stdio.h:
 
@@ -317,4 +318,8 @@ jni/error.h:
 
 jni/PlayerData.h:
 
+jni/BlockingQueue.h:
+
 /home/misgood/android-ndk-r9c/sources/cxx-stl/gnu-libstdc++/4.8/include/queue:
+
+jni/QueueData.h:

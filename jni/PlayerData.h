@@ -6,11 +6,11 @@
  */
 
 #include <stdio.h>
-#include <pthread.h>
-#include <queue>
-
 #include <android/native_window.h>
 #include <android/native_window_jni.h>
+
+#include "BlockingQueue.h"
+#include "QueueData.h"
 
 extern "C" {
 #include <libavutil/imgutils.h>
@@ -21,30 +21,6 @@ extern "C" {
 #include <libswscale/swscale.h>
 #include <libswresample/swresample.h>
 }
-
-template<class T>
-class BlockingQueue{
-public:
-	BlockingQueue();
-	~BlockingQueue();
-	void push(T);
-	void pop();
-	bool empty();
-	int size();
-	const T front();
-
-private:
-	pthread_mutex_t lock;
-	std::queue<T> queue;
-};
-
-class QueueData {
-public:
-	QueueData(uint8_t *, int);
-	~QueueData();
-	uint8_t	*buffer;
-	int		size;
-};
 
 #ifndef PLAYERDATA_H_
 #define PLAYERDATA_H_
@@ -65,7 +41,7 @@ public:
 
 	ANativeWindow		*window = NULL;
 
-	AVFormatContext 	*formatCtx = NULL;
+	AVFormatContext 		*formatCtx = NULL;
 	AVCodecContext		*audioCodecCtx = NULL;
 	AVCodecContext		*videoCodecCtx = NULL;
 	AVFrame				*decodedFrame = NULL;
@@ -74,8 +50,8 @@ public:
 	SwsContext			*swsCtx = NULL;
 	SwrContext			*swrCtx = NULL;
 
-	BlockingQueue<QueueData>	videoQueue;
-	BlockingQueue<QueueData>	audioQueue;
+	BlockingQueue<QueueData*>	*videoQueue = NULL;
+	BlockingQueue<QueueData*>	*audioQueue = NULL;
 
 	bool				stop = false;
 };

@@ -20,8 +20,8 @@ import android.view.WindowManager;
 public class MainActivity extends Activity implements SurfaceHolder.Callback, Player.OnPreparedListener {
 	private static final String TAG = "MainActivity";
 	
-	//private String videoPath = "rtsp://adelivery_s.emome.net:554/setn_gphone.sdp?dc=m20121026597105&msisdn=0988444669&ts=1351218248&at=1&mc=d2d58c";
-	private String videoPath = "/storage/sdcard0/Download/h265.ts";
+	private String videoPath = "rtsp://adelivery_s.emome.net:554/setn_gphone.sdp?dc=m20121026597105&msisdn=0988444669&ts=1351218248&at=1&mc=d2d58c";
+	//private String videoPath = "/storage/sdcard0/Download/h265.ts";
 	private SurfaceView mSurfaceView;
 	private SurfaceHolder mSurfaceHolder;
 	private Player mPlayer;

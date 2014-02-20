@@ -286,15 +286,10 @@ JNIEXPORT void JNICALL Java_com_misgood_newlplayer_Player_naDecode
 						playerData->frameRGBA->linesize
 				);
 				// store decoded and scaled frame to queue
-				uint8_t *tmp = (uint8_t *) malloc(playerData->avpictureSize * sizeof(uint8_t));
-
-
-
-				QueueData queueData(tmp, playerData->videoCodecCtx->width * playerData->videoCodecCtx->height * 4);
-				memcpy(tmp, playerData->buffer, playerData->videoCodecCtx->width * playerData->videoCodecCtx->height * 4);
-
-				playerData->videoQueue.push(queueData);
-
+				uint8_t *buffer = new uint8_t[playerData->avpictureSize];
+				QueueData *queueData = new QueueData(buffer, playerData->videoCodecCtx->width * playerData->videoCodecCtx->height * 4);
+				memcpy(queueData->buffer, playerData->buffer, playerData->videoCodecCtx->width * playerData->videoCodecCtx->height * 4);
+				playerData->videoQueue->push(queueData);
 				// count number of frames
 				++frameCount;
 			}
@@ -311,20 +306,10 @@ JNIEXPORT void JNICALL Java_com_misgood_newlplayer_Player_naDecode
 				else{
 					swr_convert(playerData->swrCtx, resampledData, playerData->decodedFrame->nb_samples, (uint8_t const **) playerData->decodedFrame->extended_data, playerData->decodedFrame->nb_samples);
 					int bufferSize = av_samples_get_buffer_size(NULL, playerData->audioCodecCtx->channels, playerData->decodedFrame->nb_samples, AV_SAMPLE_FMT_S16, 0);
-					uint8_t *tmp = (uint8_t *) malloc(bufferSize*sizeof(uint8_t));
-					memcpy(tmp, resampledData[0], bufferSize);
-					//playerData->audioQueue.push(tmp);
-					/*
-					jbyteArray buffer = pEnv->NewByteArray(bufferSize);
-					pEnv->SetByteArrayRegion(buffer, 0, bufferSize, (const signed char *) resampledData[0]);
-					jclass cls = pEnv->GetObjectClass(pObj);
-					jmethodID mid = pEnv->GetMethodID(cls, "audioTrackWrite", "([BII)V");
-					if( mid == 0 ) {
-						LOGE("cannot call audioTrackWrite");
-						continue;
-					}
-					pEnv->CallVoidMethod(pObj, mid, buffer, 0, bufferSize);
-					 */
+					uint8_t *buffer = new uint8_t[bufferSize];
+					QueueData *queueData = new QueueData(buffer, bufferSize);
+					memcpy(queueData->buffer, resampledData[0], bufferSize);
+					playerData->audioQueue->push(queueData);
 					av_free(resampledData[0]);
 				}
 			}
@@ -332,7 +317,7 @@ JNIEXPORT void JNICALL Java_com_misgood_newlplayer_Player_naDecode
 		// Free the packet that was allocated by av_read_frame
 		av_free_packet(&packet);
 		// slow down
-		if( playerData->videoQueue.size() > 30 * playerData->frameRate ) {
+		if( playerData->videoQueue->size() > 30 * playerData->frameRate ) {
 			LOGD("decode too fast! slowing down.");
 			sleep(10);
 		}
@@ -344,18 +329,16 @@ JNIEXPORT jbyteArray JNICALL Java_com_misgood_newlplayer_Player_naGetAudioData
 (JNIEnv *pEnv, jobject pObj) {
 	jint hashCode = getHashCode(pEnv, pObj);
 	PlayerData *playerData = playerMap.find(hashCode)->second;
-	uint8_t *buffer;
-	jbyteArray byteArray;
-
-	if(playerData->audioQueue.empty()) {
-		LOGD("audio queue is empty");
+	if(playerData->audioQueue->empty()) {
+		//LOGD("audio queue is empty");
 		return NULL;
 	}
 	else {
-		//buffer = playerData->audioQueue.front();
-		int bufferSize = av_samples_get_buffer_size(NULL, playerData->audioCodecCtx->channels, playerData->decodedFrame->nb_samples, AV_SAMPLE_FMT_S16, 0);
-		byteArray = pEnv->NewByteArray(bufferSize);
+		uint8_t *buffer = playerData->audioQueue->front()->buffer;
+		int bufferSize = playerData->audioQueue->front()->size;
+		jbyteArray byteArray = pEnv->NewByteArray(bufferSize);
 		pEnv->SetByteArrayRegion(byteArray, 0, bufferSize, (const signed char *) buffer);
+		free(buffer);
 		return byteArray;
 	}
 }
@@ -367,13 +350,12 @@ JNIEXPORT jint JNICALL Java_com_misgood_newlplayer_Player_naDisplay
 	ANativeWindow_Buffer	 windowBuffer;
 	uint8_t *buffer;
 
-	if( playerData->videoQueue.empty() ) {
+	if( playerData->videoQueue->empty() ) {
 		LOGD("video queue is empty");
 		return ERROR_QUEUE_IS_EMPTY;
 	}
 	else {
-		LOGD("display video start");
-		buffer = playerData->videoQueue.front().buffer;
+		buffer = playerData->videoQueue->front()->buffer;
 		if (ANativeWindow_lock(playerData->window, &windowBuffer, NULL) < 0) {
 			LOGE("cannot lock window");
 			return ERROR_CANT_LOCK_WINDOW;
@@ -383,25 +365,22 @@ JNIEXPORT jint JNICALL Java_com_misgood_newlplayer_Player_naDisplay
 		}
 		ANativeWindow_unlockAndPost(playerData->window);
 		free(buffer);
-		playerData->videoQueue.pop();
-		LOGD("display video done");
+		playerData->videoQueue->pop();
 		return 0;
 	}
 
-	if( playerData->audioQueue.empty() ) {
+	/*
+	if( playerData->audioQueue->empty() ) {
 		LOGD("audio queue is empty");
-		return ERROR_QUEUE_IS_EMPTY;
+		//return ERROR_QUEUE_IS_EMPTY;
 	}
 	else {
-		LOGD("display audio start");
-		// setup byte[]
-		int bufferSize = av_samples_get_buffer_size(NULL, playerData->audioCodecCtx->channels, playerData->decodedFrame->nb_samples, AV_SAMPLE_FMT_S16, 0);
-		LOGD("bufferSize: %d", bufferSize);
+		int bufferSize = playerData->audioQueue->front()->size;
 		jbyteArray buffer = pEnv->NewByteArray(bufferSize);
-		//pEnv->SetByteArrayRegion(buffer, 0, bufferSize, (const signed char *) playerData->audioQueue.front());
+		pEnv->SetByteArrayRegion(buffer, 0, bufferSize, (const signed char *) playerData->audioQueue->front()->buffer);
 		// free buffer
-		//free(playerData->audioQueue.front());
-		playerData->audioQueue.pop();
+		free(playerData->audioQueue->front()->buffer);
+		playerData->audioQueue->pop();
 		// write to AudioTrack
 		jclass cls = pEnv->GetObjectClass(pObj);
 		jmethodID mid = pEnv->GetMethodID(cls, "audioTrackWrite", "([BII)V");
@@ -410,11 +389,10 @@ JNIEXPORT jint JNICALL Java_com_misgood_newlplayer_Player_naDisplay
 			return -1;
 		}
 		pEnv->CallVoidMethod(pObj, mid, buffer, 0, bufferSize);
-		LOGD("display audio done");
-		return 0;
+		//return 0;
 	}
-
-
+	return 0;
+	*/
 }
 
 JNIEXPORT void JNICALL Java_com_misgood_newlplayer_Player_naStopDecode

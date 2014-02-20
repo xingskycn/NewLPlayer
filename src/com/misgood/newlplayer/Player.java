@@ -41,7 +41,7 @@ public class Player {
 	private int mSampleRate;
 
 	private DecodeTask mDecodeTask;
-	//private WriteAudioTask mWriteAudioTask;
+	private WriteAudioTask mWriteAudioTask;
 	
 	private Timer mPlayerTimer;
 	private TimerTask mDisplayTask;
@@ -92,7 +92,6 @@ public class Player {
 		}
 	}
 
-	/*
 	class WriteAudioTask extends AsyncTask<Object, Object, Object> {
 		@Override
 		protected Object doInBackground(Object... params) {
@@ -107,14 +106,11 @@ public class Player {
 					Log.d(TAG, "audio data len: " + data.length);
 					audioTrackWrite(data, 0, data.length);
 				}
-				else {
-					Log.d(TAG, "audio data is null");
-				}
 			}
 			return null;
 		}
 	}
-	*/
+
 	/*
 	class PrepareTask extends AsyncTask<Object, Object, Integer> {
 		@Override
@@ -242,14 +238,15 @@ public class Player {
 	}
 
 	public void play() {
+		Log.d(TAG, "play");
 		if( isPrepared ) {
 			isPlay = true;
+			
+			mWriteAudioTask = new WriteAudioTask();
+			mWriteAudioTask.execute();
+			
 			mDecodeTask = new DecodeTask();
-			mDecodeTask.execute();
-			
-			
-			//mWriteAudioTask = new WriteAudioTask();
-			//mWriteAudioTask.execute();
+			mDecodeTask.execute();	
 			
 			mPlayerTimer = new Timer();
 			mDisplayTask = new DisplayTask();

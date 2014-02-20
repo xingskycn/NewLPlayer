@@ -16,6 +16,11 @@ obj/local/armeabi/objs/player/PlayerData.o: jni/PlayerData.cpp \
  /home/misgood/android-ndk-r9c/platforms/android-19/arch-arm/usr/include/linux/types.h \
  /home/misgood/android-ndk-r9c/platforms/android-19/arch-arm/usr/include/machine/kernel.h \
  /home/misgood/android-ndk-r9c/platforms/android-19/arch-arm/usr/include/sys/sysmacros.h \
+ /home/misgood/android-ndk-r9c/platforms/android-19/arch-arm/usr/include/android/native_window.h \
+ /home/misgood/android-ndk-r9c/platforms/android-19/arch-arm/usr/include/android/rect.h \
+ /home/misgood/android-ndk-r9c/platforms/android-19/arch-arm/usr/include/android/native_window_jni.h \
+ /home/misgood/android-ndk-r9c/platforms/android-19/arch-arm/usr/include/jni.h \
+ jni/BlockingQueue.h \
  /home/misgood/android-ndk-r9c/platforms/android-19/arch-arm/usr/include/pthread.h \
  /home/misgood/android-ndk-r9c/platforms/android-19/arch-arm/usr/include/time.h \
  /home/misgood/android-ndk-r9c/platforms/android-19/arch-arm/usr/include/sys/time.h \
@@ -37,10 +42,12 @@ obj/local/armeabi/objs/player/PlayerData.o: jni/PlayerData.cpp \
  /home/misgood/android-ndk-r9c/platforms/android-19/arch-arm/usr/include/asm/sigcontext.h \
  /home/misgood/android-ndk-r9c/platforms/android-19/arch-arm/usr/include/sched.h \
  /home/misgood/android-ndk-r9c/sources/cxx-stl/gnu-libstdc++/4.8/include/queue \
- /home/misgood/android-ndk-r9c/platforms/android-19/arch-arm/usr/include/android/native_window.h \
- /home/misgood/android-ndk-r9c/platforms/android-19/arch-arm/usr/include/android/rect.h \
- /home/misgood/android-ndk-r9c/platforms/android-19/arch-arm/usr/include/android/native_window_jni.h \
- /home/misgood/android-ndk-r9c/platforms/android-19/arch-arm/usr/include/jni.h \
+ jni/QueueData.h \
+ /home/misgood/android-ndk-r9c/platforms/android-19/arch-arm/usr/include/unistd.h \
+ /home/misgood/android-ndk-r9c/platforms/android-19/arch-arm/usr/include/sys/select.h \
+ /home/misgood/android-ndk-r9c/platforms/android-19/arch-arm/usr/include/sys/sysconf.h \
+ /home/misgood/android-ndk-r9c/platforms/android-19/arch-arm/usr/include/linux/capability.h \
+ /home/misgood/android-ndk-r9c/platforms/android-19/arch-arm/usr/include/pathconf.h \
  /home/misgood/android-ndk-r9c/sources/ffmpeg/android/arm/include/libavutil/imgutils.h \
  /home/misgood/android-ndk-r9c/sources/ffmpeg/android/arm/include/libavutil/avutil.h \
  /home/misgood/android-ndk-r9c/sources/ffmpeg/android/arm/include/libavutil/common.h \
@@ -131,6 +138,16 @@ jni/PlayerData.h:
 
 /home/misgood/android-ndk-r9c/platforms/android-19/arch-arm/usr/include/sys/sysmacros.h:
 
+/home/misgood/android-ndk-r9c/platforms/android-19/arch-arm/usr/include/android/native_window.h:
+
+/home/misgood/android-ndk-r9c/platforms/android-19/arch-arm/usr/include/android/rect.h:
+
+/home/misgood/android-ndk-r9c/platforms/android-19/arch-arm/usr/include/android/native_window_jni.h:
+
+/home/misgood/android-ndk-r9c/platforms/android-19/arch-arm/usr/include/jni.h:
+
+jni/BlockingQueue.h:
+
 /home/misgood/android-ndk-r9c/platforms/android-19/arch-arm/usr/include/pthread.h:
 
 /home/misgood/android-ndk-r9c/platforms/android-19/arch-arm/usr/include/time.h:
@@ -173,13 +190,17 @@ jni/PlayerData.h:
 
 /home/misgood/android-ndk-r9c/sources/cxx-stl/gnu-libstdc++/4.8/include/queue:
 
-/home/misgood/android-ndk-r9c/platforms/android-19/arch-arm/usr/include/android/native_window.h:
+jni/QueueData.h:
 
-/home/misgood/android-ndk-r9c/platforms/android-19/arch-arm/usr/include/android/rect.h:
+/home/misgood/android-ndk-r9c/platforms/android-19/arch-arm/usr/include/unistd.h:
 
-/home/misgood/android-ndk-r9c/platforms/android-19/arch-arm/usr/include/android/native_window_jni.h:
+/home/misgood/android-ndk-r9c/platforms/android-19/arch-arm/usr/include/sys/select.h:
 
-/home/misgood/android-ndk-r9c/platforms/android-19/arch-arm/usr/include/jni.h:
+/home/misgood/android-ndk-r9c/platforms/android-19/arch-arm/usr/include/sys/sysconf.h:
+
+/home/misgood/android-ndk-r9c/platforms/android-19/arch-arm/usr/include/linux/capability.h:
+
+/home/misgood/android-ndk-r9c/platforms/android-19/arch-arm/usr/include/pathconf.h:
 
 /home/misgood/android-ndk-r9c/sources/ffmpeg/android/arm/include/libavutil/imgutils.h:
 
