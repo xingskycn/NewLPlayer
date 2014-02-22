@@ -33,6 +33,10 @@ extern "C" {
 std::map<jint, PlayerData*> playerMap;
 JavaVM *jvm;
 
+
+// testing
+FILE *fp;
+
 jint getHashCode(JNIEnv *env, jobject obj) {
 	jclass cls = env->GetObjectClass(obj);
 	jmethodID mid = env->GetMethodID(cls, "hashCode", "()I");
@@ -48,6 +52,12 @@ JNIEXPORT jint JNICALL Java_com_misgood_newlplayer_Player_naInit
 	PlayerData *playerData;
 	jint hashCode = getHashCode(pEnv, pObj);
 	LOGD("naInit start");
+
+	//testing
+	fp = fopen("/storage/sdcard0/Download/result.wav", "w");
+	if( !fp ) {
+		LOGE("fopen errorf");
+	}
 
 	if(jvm == NULL) {
 		pEnv->GetJavaVM(&jvm);
@@ -304,7 +314,7 @@ JNIEXPORT void JNICALL Java_com_misgood_newlplayer_Player_naDecode
 					return;
 				}
 				else{
-					swr_convert(playerData->swrCtx, resampledData, playerData->decodedFrame->nb_samples, (uint8_t const **) playerData->decodedFrame->extended_data, playerData->decodedFrame->nb_samples);
+					swr_convert(playerData->swrCtx, resampledData, playerData->decodedFrame->nb_samples, (uint8_t const **) playerData->decodedFrame->data, playerData->decodedFrame->nb_samples);
 					int bufferSize = av_samples_get_buffer_size(NULL, playerData->audioCodecCtx->channels, playerData->decodedFrame->nb_samples, AV_SAMPLE_FMT_S16, 0);
 					uint8_t *buffer = new uint8_t[bufferSize];
 					QueueData *queueData = new QueueData(buffer, bufferSize);
@@ -330,49 +340,8 @@ JNIEXPORT jbyteArray JNICALL Java_com_misgood_newlplayer_Player_naGetAudioData
 	jint hashCode = getHashCode(pEnv, pObj);
 	PlayerData *playerData = playerMap.find(hashCode)->second;
 	if(playerData->audioQueue->empty()) {
-		//LOGD("audio queue is empty");
-		return NULL;
-	}
-	else {
-		uint8_t *buffer = playerData->audioQueue->front()->buffer;
-		int bufferSize = playerData->audioQueue->front()->size;
-		jbyteArray byteArray = pEnv->NewByteArray(bufferSize);
-		pEnv->SetByteArrayRegion(byteArray, 0, bufferSize, (const signed char *) buffer);
-		free(buffer);
-		return byteArray;
-	}
-}
-
-JNIEXPORT jint JNICALL Java_com_misgood_newlplayer_Player_naDisplay
-(JNIEnv * pEnv, jobject pObj) {
-	jint hashCode = getHashCode(pEnv, pObj);
-	PlayerData *playerData = playerMap.find(hashCode)->second;
-	ANativeWindow_Buffer	 windowBuffer;
-	uint8_t *buffer;
-
-	if( playerData->videoQueue->empty() ) {
-		LOGD("video queue is empty");
-		return ERROR_QUEUE_IS_EMPTY;
-	}
-	else {
-		buffer = playerData->videoQueue->front()->buffer;
-		if (ANativeWindow_lock(playerData->window, &windowBuffer, NULL) < 0) {
-			LOGE("cannot lock window");
-			return ERROR_CANT_LOCK_WINDOW;
-		}
-		else {
-			memcpy(windowBuffer.bits, buffer, playerData->videoCodecCtx->width * playerData->videoCodecCtx->height * 4);
-		}
-		ANativeWindow_unlockAndPost(playerData->window);
-		free(buffer);
-		playerData->videoQueue->pop();
-		return 0;
-	}
-
-	/*
-	if( playerData->audioQueue->empty() ) {
 		LOGD("audio queue is empty");
-		//return ERROR_QUEUE_IS_EMPTY;
+		return NULL;
 	}
 	else {
 		int bufferSize = playerData->audioQueue->front()->size;
@@ -386,13 +355,63 @@ JNIEXPORT jint JNICALL Java_com_misgood_newlplayer_Player_naDisplay
 		jmethodID mid = pEnv->GetMethodID(cls, "audioTrackWrite", "([BII)V");
 		if( mid == 0 ) {
 			LOGE("cannot call audioTrackWrite");
+			return NULL;
+		}
+		pEnv->CallVoidMethod(pObj, mid, buffer, 0, bufferSize);
+
+		return NULL;
+	}
+}
+
+JNIEXPORT jint JNICALL Java_com_misgood_newlplayer_Player_naDisplay
+(JNIEnv * pEnv, jobject pObj) {
+	jint hashCode = getHashCode(pEnv, pObj);
+	PlayerData *playerData = playerMap.find(hashCode)->second;
+	ANativeWindow_Buffer	 windowBuffer;
+	uint8_t *buffer;
+
+	if( playerData->videoQueue->empty() ) {
+		LOGD("video queue is empty");
+		//return ERROR_QUEUE_IS_EMPTY;
+	}
+	else {
+		buffer = playerData->videoQueue->front()->buffer;
+		if (ANativeWindow_lock(playerData->window, &windowBuffer, NULL) < 0) {
+			LOGE("cannot lock window");
+			return ERROR_CANT_LOCK_WINDOW;
+		}
+		else {
+			memcpy(windowBuffer.bits, buffer, playerData->videoCodecCtx->width * playerData->videoCodecCtx->height * 4);
+		}
+		ANativeWindow_unlockAndPost(playerData->window);
+		free(buffer);
+		playerData->videoQueue->pop();
+		//return 0;
+	}
+
+	if( playerData->audioQueue->empty() ) {
+		LOGD("audio queue is empty");
+		//return ERROR_QUEUE_IS_EMPTY;
+	}
+	else {
+		int bufferSize = playerData->audioQueue->front()->size;
+		jbyteArray buffer = pEnv->NewByteArray(bufferSize);
+		pEnv->SetByteArrayRegion(buffer, 0, bufferSize, (const signed char *) playerData->audioQueue->front()->buffer);
+
+		// testing
+		fwrite(playerData->audioQueue->front()->buffer, sizeof(uint8_t), bufferSize, fp);
+
+		playerData->audioQueue->pop();
+		jclass cls = pEnv->GetObjectClass(pObj);
+		jmethodID mid = pEnv->GetMethodID(cls, "audioTrackWrite", "([BII)V");
+		if( mid == 0 ) {
+			LOGE("cannot call audioTrackWrite");
 			return -1;
 		}
 		pEnv->CallVoidMethod(pObj, mid, buffer, 0, bufferSize);
 		//return 0;
 	}
 	return 0;
-	*/
 }
 
 JNIEXPORT void JNICALL Java_com_misgood_newlplayer_Player_naStopDecode

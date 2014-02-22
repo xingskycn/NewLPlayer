@@ -41,7 +41,19 @@ public class Player {
 	private int mSampleRate;
 
 	private DecodeTask mDecodeTask;
-	private WriteAudioTask mWriteAudioTask;
+	//private WriteAudioTask mWriteAudioTask;
+
+	/*
+	private Runnable mRunWriteAudio = new Runnable() {
+		@Override
+		public void run() {
+			Log.d(TAG, "start WriteAudioTask");
+			while(true) {
+				naGetAudioData();
+			}			
+		}
+	};
+	*/
 	
 	private Timer mPlayerTimer;
 	private TimerTask mDisplayTask;
@@ -92,6 +104,7 @@ public class Player {
 		}
 	}
 
+	/*
 	class WriteAudioTask extends AsyncTask<Object, Object, Object> {
 		@Override
 		protected Object doInBackground(Object... params) {
@@ -110,6 +123,7 @@ public class Player {
 			return null;
 		}
 	}
+	*/
 
 	/*
 	class PrepareTask extends AsyncTask<Object, Object, Integer> {
@@ -226,6 +240,7 @@ public class Player {
 		int channelConfig = naGetChannels() >= 2 ? AudioFormat.CHANNEL_OUT_STEREO : AudioFormat.CHANNEL_OUT_MONO;
 		mSampleRate = naGetSampleRate();
 		Log.i(TAG, "sample rate: " + mSampleRate);
+		Log.i(TAG, "channel config: " + channelConfig);
 		mAudioTrackBufferSize = AudioTrack.getMinBufferSize(mSampleRate, channelConfig, AudioFormat.ENCODING_PCM_16BIT);
 		mAudioTrack = new AudioTrack(AudioManager.STREAM_MUSIC, mSampleRate, channelConfig, AudioFormat.ENCODING_PCM_16BIT, mAudioTrackBufferSize, AudioTrack.MODE_STREAM);
 		mAudioBuffer = new byte[mAudioTrackBufferSize];
@@ -242,11 +257,14 @@ public class Player {
 		if( isPrepared ) {
 			isPlay = true;
 			
-			mWriteAudioTask = new WriteAudioTask();
-			mWriteAudioTask.execute();
+			//mWriteAudioTask = new WriteAudioTask();
+			//mWriteAudioTask.execute();
 			
 			mDecodeTask = new DecodeTask();
 			mDecodeTask.execute();	
+			
+			//Thread thread = new Thread(mRunWriteAudio);
+			//thread.start();
 			
 			mPlayerTimer = new Timer();
 			mDisplayTask = new DisplayTask();
