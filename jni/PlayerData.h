@@ -41,7 +41,7 @@ public:
 
 	ANativeWindow		*window = NULL;
 
-	AVFormatContext 		*formatCtx = NULL;
+	AVFormatContext 	*formatCtx = NULL;
 	AVCodecContext		*audioCodecCtx = NULL;
 	AVCodecContext		*videoCodecCtx = NULL;
 	AVFrame				*decodedFrame = NULL;

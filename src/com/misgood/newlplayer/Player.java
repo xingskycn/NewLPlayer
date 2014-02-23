@@ -60,7 +60,6 @@ public class Player {
 
 	private int mAudioTrackBufferSize;
 	private AudioTrack mAudioTrack;
-	private byte[] mAudioBuffer;
 
 	private OnPreparedListener mOnPreparedListener;
 
@@ -241,9 +240,9 @@ public class Player {
 		mSampleRate = naGetSampleRate();
 		Log.i(TAG, "sample rate: " + mSampleRate);
 		Log.i(TAG, "channel config: " + channelConfig);
+
 		mAudioTrackBufferSize = AudioTrack.getMinBufferSize(mSampleRate, channelConfig, AudioFormat.ENCODING_PCM_16BIT);
 		mAudioTrack = new AudioTrack(AudioManager.STREAM_MUSIC, mSampleRate, channelConfig, AudioFormat.ENCODING_PCM_16BIT, mAudioTrackBufferSize, AudioTrack.MODE_STREAM);
-		mAudioBuffer = new byte[mAudioTrackBufferSize];
 
 		// prepare success
 		isPrepared = true;
@@ -257,18 +256,16 @@ public class Player {
 		if( isPrepared ) {
 			isPlay = true;
 			
-			//mWriteAudioTask = new WriteAudioTask();
-			//mWriteAudioTask.execute();
-			
 			mDecodeTask = new DecodeTask();
 			mDecodeTask.execute();	
 			
-			//Thread thread = new Thread(mRunWriteAudio);
-			//thread.start();
 			
 			mPlayerTimer = new Timer();
 			mDisplayTask = new DisplayTask();
+			// testing
 			mPlayerTimer.scheduleAtFixedRate(mDisplayTask, 0, (long) (1000/mFps));
+			//mPlayerTimer.schedule(mDisplayTask, 0, (long) (1000/mFps));
+			
 		}
 		else {
 			Log.w(TAG, "video is not prepared");
@@ -311,7 +308,7 @@ public class Player {
 
 	// call by native
 	private void audioTrackWrite(byte[] audioData, int offsetInBytes, int sizeInBytes) {
-		Log.d(TAG, "audioTrackWrite");
+		//Log.d(TAG, "audioTrackWrite");
 		if (mAudioTrack != null) {
 			audioTrackStart();
 			int written;
@@ -323,12 +320,12 @@ public class Player {
 			}
 		}
 		else {
-			Log.d(TAG, "AudioTrack is null");
+			Log.e(TAG, "AudioTrack is null");
 		}
 	}
 
 	private void audioTrackStart() {
-		Log.d(TAG, "audioTrackStart");
+		//Log.d(TAG, "audioTrackStart");
 		if (mAudioTrack != null && 
 				mAudioTrack.getState() == AudioTrack.STATE_INITIALIZED && 
 				mAudioTrack.getPlayState() != AudioTrack.PLAYSTATE_PLAYING){
@@ -345,7 +342,7 @@ public class Player {
 	 */
 
 	private void audioTrackRelease() {
-		Log.d(TAG, "audioTrackRelease");
+		//Log.d(TAG, "audioTrackRelease");
 		if (mAudioTrack != null) {
 			if (mAudioTrack.getState() == AudioTrack.STATE_INITIALIZED)
 				mAudioTrack.stop();
