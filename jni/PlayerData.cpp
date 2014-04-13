@@ -7,9 +7,15 @@
 
 #include <PlayerData.h>
 
-PlayerData::PlayerData(JNIEnv *pEnv, jobject pObj) {
-	this->audioQueue = new BlockingQueue<QueueData*>();
-	this->videoQueue = new BlockingQueue<QueueData*>();
+PlayerData::PlayerData(JNIEnv *pEnv, jobject pObj, jboolean isBuffer) {
+	if(isBuffer) {
+		this->audioQueue = new BlockingQueue<QueueData*>();
+		this->videoQueue = new BlockingQueue<QueueData*>();
+	}
+	else{
+		this->audioQueue = new BlockingQueue<QueueData*>(1);
+		this->videoQueue = new BlockingQueue<QueueData*>(1);
+	}
 	this->env = pEnv;
 	this->thiz = pObj;
 }

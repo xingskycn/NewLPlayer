@@ -10,14 +10,14 @@
 #include <android/native_window_jni.h>
 
 extern "C" {
-#include <libavutil/imgutils.h>
-#include <libavutil/mem.h>
-#include <libavutil/error.h>
-#include <libavutil/opt.h>
 #include <libavcodec/avcodec.h>
 #include <libavformat/avformat.h>
 #include <libswscale/swscale.h>
 #include <libswresample/swresample.h>
+#include <libavutil/imgutils.h>
+#include <libavutil/mem.h>
+#include <libavutil/error.h>
+#include <libavutil/opt.h>
 }
 
 #include "player.h"
@@ -25,41 +25,124 @@ extern "C" {
 #include "PlayerData.h"
 
 #define LOG_TAG "Native"
-
-#define LOGD(...) __android_log_print(3, LOG_TAG, __VA_ARGS__);
-#define LOGI(...) __android_log_print(4, LOG_TAG, __VA_ARGS__);
-#define LOGE(...) __android_log_print(6, LOG_TAG, __VA_ARGS__);
+#define VERSION "0.1.2"
 
 std::map<jint, PlayerData*> playerMap;
 JavaVM *jvm;
+
+jboolean isBuffer(JNIEnv *pEnv, jobject pObj) {
+	jclass cls = pEnv->GetObjectClass(pObj);
+	jfieldID fid = pEnv->GetFieldID(cls, "isBuffer", "Z");
+	jboolean result = pEnv->GetBooleanField(pObj, fid);
+	pEnv->DeleteLocalRef(cls);
+	return result;
+}
+
+jboolean isMute(JNIEnv *pEnv, jobject pObj) {
+	jclass cls = pEnv->GetObjectClass(pObj);
+	jfieldID fid = pEnv->GetFieldID(cls, "isMute", "Z");
+	jboolean result = pEnv->GetBooleanField(pObj, fid);
+	pEnv->DeleteLocalRef(cls);
+	return result;
+}
+
+jboolean isVerbose(JNIEnv *pEnv, jobject pObj) {
+	jclass cls = pEnv->GetObjectClass(pObj);
+	jfieldID fid = pEnv->GetFieldID(cls, "isVerbose", "Z");
+	jboolean result = pEnv->GetBooleanField(pObj, fid);
+	pEnv->DeleteLocalRef(cls);
+	return result;
+}
+
+void LOG(JNIEnv *env, jobject obj, int lv, const char *msg, va_list args) {
+	if(isVerbose(env, obj)) {
+		__android_log_vprint(lv, LOG_TAG, msg, args);
+	}
+}
+
+void LOGD(JNIEnv *env, jobject obj, const char * msg, ...) {
+	va_list args;
+	va_start(args, msg);
+	LOG(env, obj, 3, msg, args);
+	va_end(args);
+}
+
+void LOGI(JNIEnv *env, jobject obj, const char * msg, ...) {
+	va_list args;
+	va_start(args, msg);
+	LOG(env, obj, 4, msg, args);
+	va_end(args);
+}
+
+void LOGE(JNIEnv *env, jobject obj, const char * msg, ...) {
+	va_list args;
+	va_start(args, msg);
+	LOG(env, obj, 6, msg, args);
+	va_end(args);
+}
 
 jint getHashCode(JNIEnv *env, jobject obj) {
 	jclass cls = env->GetObjectClass(obj);
 	jmethodID mid = env->GetMethodID(cls, "hashCode", "()I");
 	if( mid == 0 ) {
-		LOGE("cannot get hash code");
+		LOGE(env, obj, "cannot get hash code");
 		return 0;
 	}
 	return env->CallIntMethod(obj, mid);
 }
 
+jstring getPath(JNIEnv *env, jobject obj) {
+	jclass cls = env->GetObjectClass(obj);
+	jfieldID fid = env->GetFieldID(cls, "mPath", "Ljava/lang/String;");
+	if( fid == 0 ) {
+		LOGE(env, obj, "cannot get mPath");
+		return 0;
+	}
+	return (jstring) env->GetObjectField(obj, fid);
+}
+
+jobject getSurface(JNIEnv *env, jobject obj) {
+	jclass cls = env->GetObjectClass(obj);
+	jfieldID fid = env->GetFieldID(cls, "mSurface", "Landroid/view/Surface;");
+	if( fid == 0 ) {
+		LOGE(env, obj, "cannot get mSurface");
+		return 0;
+	}
+	return (jobject) env->GetObjectField(obj, fid);
+}
+
+jboolean isPlay(JNIEnv *pEnv, jobject pObj) {
+	jclass cls = pEnv->GetObjectClass(pObj);
+	jfieldID fid = pEnv->GetFieldID(cls, "isPlay", "Z");
+	jboolean result = pEnv->GetBooleanField(pObj, fid);
+	pEnv->DeleteLocalRef(cls);
+	return result;
+}
+
+PlayerData* getPlayerData(JNIEnv *pEnv, jobject pObj) {
+	jint hashCode = getHashCode(pEnv, pObj);
+	return playerMap.find(hashCode)->second;
+}
+
 JNIEXPORT jint JNICALL Java_com_misgood_newlplayer_Player_naInit
 (JNIEnv *pEnv, jobject pObj) {
-	PlayerData *playerData;
+	PlayerData *player;
 	jint hashCode = getHashCode(pEnv, pObj);
-	LOGD("naInit start");
+	LOGD(pEnv, pObj, "naInit start");
+
+	LOGI(pEnv, pObj, "NewLPlayer version %s", VERSION);
 
 	if(jvm == NULL) {
 		pEnv->GetJavaVM(&jvm);
 	}
 
 	if( playerMap.find(hashCode) != playerMap.end() ) {
-		LOGE("this player object is already initialized");
+		LOGE(pEnv, pObj, "this player object is already initialized");
 		return ERROR_ALREADY_INITIALIZED;
 	}
 	else {
-		playerData = new PlayerData(pEnv, pObj);
-		playerMap.insert(std::pair<jint, PlayerData*>(hashCode, playerData));
+		player = new PlayerData(pEnv, pObj, isBuffer(pEnv, pObj));
+		playerMap.insert(std::pair<jint, PlayerData*>(hashCode, player));
 	}
 
 	// Register all formats and codecs
@@ -68,46 +151,42 @@ JNIEXPORT jint JNICALL Java_com_misgood_newlplayer_Player_naInit
 	avformat_network_init();
 	// Open video file
 
-	LOGD("naInit done");
+	LOGD(pEnv, pObj, "naInit done");
 	return 0;
 }
 
 JNIEXPORT jintArray JNICALL Java_com_misgood_newlplayer_Player_naGetVideoRes
 (JNIEnv *pEnv, jobject pObj) {
-	jint hashCode = getHashCode(pEnv, pObj);
-	PlayerData *playerData = playerMap.find(hashCode)->second;
+	PlayerData *player = getPlayerData(pEnv, pObj);
 	jintArray lRes;
-	if (NULL == playerData->videoCodecCtx) {
+	if (NULL == player->videoCodecCtx) {
 		return NULL;
 	}
 	lRes = pEnv->NewIntArray(2);
 	if (lRes == NULL) {
-		LOGE("cannot allocate memory for video size");
+		LOGE(pEnv, pObj, "cannot allocate memory for video size");
 		return NULL;
 	}
 	jint lVideoRes[2];
-	lVideoRes[0] = playerData->videoCodecCtx->width;
-	lVideoRes[1] = playerData->videoCodecCtx->height;
+	lVideoRes[0] = player->videoCodecCtx->width;
+	lVideoRes[1] = player->videoCodecCtx->height;
 	pEnv->SetIntArrayRegion(lRes, 0, 2, lVideoRes);
 	return lRes;
 }
 
 JNIEXPORT jdouble JNICALL Java_com_misgood_newlplayer_Player_naGetFps
 (JNIEnv * pEnv, jobject pObj) {
-	jint hashCode = getHashCode(pEnv, pObj);
-	return playerMap.find(hashCode)->second->frameRate;
+	return getPlayerData(pEnv, pObj)->frameRate;
 }
 
 JNIEXPORT jint JNICALL Java_com_misgood_newlplayer_Player_naGetSampleRate
 (JNIEnv * pEnv, jobject pObj) {
-	jint hashCode = getHashCode(pEnv, pObj);
-	return playerMap.find(hashCode)->second->audioCodecCtx->sample_rate;
+	return getPlayerData(pEnv, pObj)->audioCodecCtx->sample_rate;
 }
 
 JNIEXPORT jint JNICALL Java_com_misgood_newlplayer_Player_naGetChannels
 (JNIEnv * pEnv, jobject pObj) {
-	jint hashCode = getHashCode(pEnv, pObj);
-	return playerMap.find(hashCode)->second->audioCodecCtx->channels;
+	return getPlayerData(pEnv, pObj)->audioCodecCtx->channels;
 }
 
 void setSurface(PlayerData *pd, jobject pSurface) {
@@ -120,337 +199,308 @@ void setSurface(PlayerData *pd, jobject pSurface) {
 }
 
 JNIEXPORT jint JNICALL Java_com_misgood_newlplayer_Player_naSetup
-(JNIEnv * pEnv, jobject pObj, jstring pFileName, jobject pSurface) {
-	jint hashCode			= getHashCode(pEnv, pObj);
-	PlayerData *playerData	= playerMap.find(hashCode)->second;
+(JNIEnv * pEnv, jobject pObj) {
+	PlayerData *player		= getPlayerData(pEnv, pObj);
 	AVCodec *pVideoCodec	= NULL;
 	AVCodec *pAudioCodec	= NULL;
 	AVDictionary *opts		= 0;
+	jstring pFileName			= getPath(pEnv, pObj);
+	jobject pSurface			= getSurface(pEnv, pObj);
 
-	LOGD("naSetup start");
+	LOGD(pEnv, pObj, "naSetup start");
 
-	playerData->videoFileName = (char *) pEnv->GetStringUTFChars(pFileName, NULL);
-	LOGI("video file name is %s", playerData->videoFileName);
+	player->videoFileName = (char *) pEnv->GetStringUTFChars(pFileName, NULL);
+	LOGI(pEnv, pObj, "video file name is %s", player->videoFileName);
 	av_dict_set(&opts, "rtsp_transport", "tcp", 0);
-	if( avformat_open_input(&(playerData->formatCtx), playerData->videoFileName, NULL, &opts) != 0){
-		LOGE("cannot open video.");
+	if( avformat_open_input(&(player->formatCtx), player->videoFileName, NULL, &opts) != 0){
+		LOGE(pEnv, pObj, "cannot open video.");
 		return ERROR_CANT_OPEN_INPUT; // Couldn't open file
 	}
 	// Retrieve stream information
-	if(avformat_find_stream_info(playerData->formatCtx, NULL)<0) {
-		LOGE("cannot find stream information.");
+	if(avformat_find_stream_info(player->formatCtx, NULL)<0) {
+		LOGE(pEnv, pObj, "cannot find stream information.");
 		return ERROR_NO_STREAM_INFO_FOUND; // Couldn't find stream information
 	}
 	// Dump information about file onto standard error
-	av_dump_format((playerData->formatCtx), 0, playerData->videoFileName, 0);
+	av_dump_format((player->formatCtx), 0, player->videoFileName, 0);
 	av_dict_free(&opts);
 	// Find best video stream
-	playerData->videoStream = av_find_best_stream(playerData->formatCtx, AVMEDIA_TYPE_VIDEO, -1, -1, NULL, 0);
-	if(playerData->videoStream == AVERROR_STREAM_NOT_FOUND) {
-		LOGE("video stream not found.");
+	player->videoStream = av_find_best_stream(player->formatCtx, AVMEDIA_TYPE_VIDEO, -1, -1, NULL, 0);
+	if(player->videoStream == AVERROR_STREAM_NOT_FOUND) {
+		LOGE(pEnv, pObj, "video stream not found.");
 	}
-	else if(playerData->videoStream == AVERROR_DECODER_NOT_FOUND) {
-		LOGE("video stream is found, but no available decoder");
+	else if(player->videoStream == AVERROR_DECODER_NOT_FOUND) {
+		LOGE(pEnv, pObj, "video stream is found, but no available decoder");
 		return ERROR_NO_AVAILABLE_DECODER;
 	}
 	// Find best audio stream
-	playerData->audioStream = av_find_best_stream(playerData->formatCtx, AVMEDIA_TYPE_AUDIO, -1, -1, NULL, 0);
-	if(playerData->audioStream == AVERROR_STREAM_NOT_FOUND) {
-		LOGI("audio stream not found.");
+	player->audioStream = av_find_best_stream(player->formatCtx, AVMEDIA_TYPE_AUDIO, -1, -1, NULL, 0);
+	if(player->audioStream == AVERROR_STREAM_NOT_FOUND) {
+		LOGI(pEnv, pObj, "audio stream not found.");
 	}
-	else if(playerData->audioStream == AVERROR_DECODER_NOT_FOUND) {
-		LOGE("audio stream is found, but no available decoder");
+	else if(player->audioStream == AVERROR_DECODER_NOT_FOUND) {
+		LOGE(pEnv, pObj, "audio stream is found, but no available decoder");
 		return ERROR_NO_AVAILABLE_DECODER;
 	}
-	if( playerData->audioStream < 0 && playerData->videoStream < 0 ) {
-		LOGE("cannot find any media stream");
+	if( player->audioStream < 0 && player->videoStream < 0 ) {
+		LOGE(pEnv, pObj, "cannot find any media stream");
 		return ERROR_STREAM_NOT_FOUND;
 	}
-	if( playerData->videoStream >= 0 ) {
-		playerData->frameRate = av_q2d(playerData->formatCtx->streams[playerData->videoStream]->r_frame_rate);
-		LOGI("frame rate: %f", playerData->frameRate);
+	if( player->videoStream >= 0 ) {
+		player->frameRate = av_q2d(player->formatCtx->streams[player->videoStream]->r_frame_rate);
+		LOGI(pEnv, pObj, "frame rate: %f", player->frameRate);
 		// Get a pointer to the codec context for the video stream
-		playerData->videoCodecCtx = playerData->formatCtx->streams[playerData->videoStream]->codec;
-		pVideoCodec = avcodec_find_decoder(playerData->videoCodecCtx->codec_id);
+		player->videoCodecCtx = player->formatCtx->streams[player->videoStream]->codec;
+		pVideoCodec = avcodec_find_decoder(player->videoCodecCtx->codec_id);
 		if(pVideoCodec == NULL) {
-			LOGE("unsupported codec");
+			LOGE(pEnv, pObj, "unsupported codec");
 			return -1; // Codec not found
 		}
 		// Open codec
-		if(avcodec_open2(playerData->videoCodecCtx, pVideoCodec, NULL) < 0) {
+		if(avcodec_open2(player->videoCodecCtx, pVideoCodec, NULL) < 0) {
 			// Could not open codec
-			LOGE("cannot open codec '%s'.", playerData->videoCodecCtx->codec_name);
+			LOGE(pEnv, pObj, "cannot open codec '%s'.", player->videoCodecCtx->codec_name);
 			return ERROR_CANT_OPEN_DECODER;
 		}
-		playerData->frameRGBA = av_frame_alloc();
-		if(playerData->frameRGBA == NULL) {
-			LOGE("allocation fail.");
+		player->frameRGBA = av_frame_alloc();
+		if(player->frameRGBA == NULL) {
+			LOGE(pEnv, pObj, "allocation fail.");
 			return ERROR_FRAME_ALLOC_FAIL;
 		}
 		// set surface
-		setSurface(playerData, pSurface);
+		setSurface(player, pSurface);
 		// set format and size of window buffer
-		ANativeWindow_setBuffersGeometry(playerData->window, playerData->videoCodecCtx->width, playerData->videoCodecCtx->height, WINDOW_FORMAT_RGBA_8888);
+		ANativeWindow_setBuffersGeometry(player->window, player->videoCodecCtx->width, player->videoCodecCtx->height, WINDOW_FORMAT_RGBA_8888);
 		//get the scaling context
-		if( !(playerData->swsCtx = sws_getCachedContext (
+		if( !(player->swsCtx = sws_getCachedContext (
 				NULL,
-				playerData->videoCodecCtx->width,
-				playerData->videoCodecCtx->height,
-				playerData->videoCodecCtx->pix_fmt,
-				playerData->videoCodecCtx->width,
-				playerData->videoCodecCtx->height,
+				player->videoCodecCtx->width,
+				player->videoCodecCtx->height,
+				player->videoCodecCtx->pix_fmt,
+				player->videoCodecCtx->width,
+				player->videoCodecCtx->height,
 				AV_PIX_FMT_RGBA,
 				SWS_X,
 				NULL,
 				NULL,
 				NULL
 		))) {
-			LOGE("cannot get sws context");
+			LOGE(pEnv, pObj, "cannot get sws context");
 			return ERROR_CANT_GET_SWS_CONTEXT;
 		}
-		playerData->avpictureSize = avpicture_get_size(AV_PIX_FMT_RGBA, playerData->videoCodecCtx->width, playerData->videoCodecCtx->height);
-
-		LOGD("%d, %d", playerData->avpictureSize, playerData->videoCodecCtx->width * playerData->videoCodecCtx->height * 4);
-
-		playerData->buffer = (uint8_t*) av_malloc( playerData->avpictureSize * sizeof(uint8_t) );
-		avpicture_fill((AVPicture *)playerData->frameRGBA, playerData->buffer, AV_PIX_FMT_RGBA, playerData->videoCodecCtx->width, playerData->videoCodecCtx->height);
+		player->avpictureSize = avpicture_get_size(AV_PIX_FMT_RGBA, player->videoCodecCtx->width, player->videoCodecCtx->height);
+		player->buffer = (uint8_t*) av_malloc( player->avpictureSize * sizeof(uint8_t) );
+		avpicture_fill((AVPicture *)player->frameRGBA, player->buffer, AV_PIX_FMT_RGBA, player->videoCodecCtx->width, player->videoCodecCtx->height);
 	}
-	if( playerData->audioStream >= 0 ) {
-		playerData->audioCodecCtx = playerData->formatCtx->streams[playerData->audioStream]->codec;
-		pAudioCodec = avcodec_find_decoder(playerData->audioCodecCtx->codec_id);
-		LOGI("audio format: %s", av_get_sample_fmt_name(playerData->audioCodecCtx->sample_fmt));
+	if( player->audioStream >= 0 ) {
+		player->audioCodecCtx = player->formatCtx->streams[player->audioStream]->codec;
+		pAudioCodec = avcodec_find_decoder(player->audioCodecCtx->codec_id);
+		LOGI(pEnv, pObj, "audio format: %s", av_get_sample_fmt_name(player->audioCodecCtx->sample_fmt));
 		if(pAudioCodec == NULL) {
-			LOGE("unsupported codec");
+			LOGE(pEnv, pObj, "unsupported codec");
 			return -1; // Codec not found
 		}
-		if(avcodec_open2(playerData->audioCodecCtx, pAudioCodec, NULL) < 0) {
-			LOGE("cannot open codec %s.", playerData->audioCodecCtx->codec_name);
+		if(avcodec_open2(player->audioCodecCtx, pAudioCodec, NULL) < 0) {
+			LOGE(pEnv, pObj, "cannot open codec %s.", player->audioCodecCtx->codec_name);
 			return ERROR_CANT_OPEN_DECODER;
 		}
-		if(playerData->audioCodecCtx->sample_fmt != AV_SAMPLE_FMT_S16) {
-			if( !(playerData->swrCtx = swr_alloc()) ) {
-				LOGE("cannot allocate swr context");
+		if(player->audioCodecCtx->sample_fmt != AV_SAMPLE_FMT_S16) {
+			player->swrCtx = swr_alloc_set_opts(
+					NULL,
+					av_get_default_channel_layout(player->audioCodecCtx->channels),
+					AV_SAMPLE_FMT_S16,
+					player->audioCodecCtx->sample_rate,
+					av_get_default_channel_layout(player->audioCodecCtx->channels),
+					player->audioCodecCtx->sample_fmt,
+					player->audioCodecCtx->sample_rate,
+					0,
+					NULL);
+			if(!player->swrCtx) {
+				LOGE(pEnv, pObj, "cannot allocate swr context");
 				return ERROR_CANT_ALLOCATE_SWR_CONTEXT;
 			}
-			av_opt_set_int(playerData->swrCtx, "in_channel_layout", playerData->audioCodecCtx->channel_layout, 0);
-			av_opt_set_int(playerData->swrCtx, "out_channel_layout", playerData->audioCodecCtx->channel_layout, 0);
-			av_opt_set_int(playerData->swrCtx, "in_sample_rate", playerData->audioCodecCtx->sample_rate, 0);
-			av_opt_set_int(playerData->swrCtx, "out_sample_rate", playerData->audioCodecCtx->sample_rate, 0);
-			av_opt_set_sample_fmt(playerData->swrCtx, "in_sample_fmt", playerData->audioCodecCtx->sample_fmt, 0);
-			av_opt_set_sample_fmt(playerData->swrCtx, "out_sample_fmt", AV_SAMPLE_FMT_S16,  0);
-			if( swr_init(playerData->swrCtx) < 0 ) {
-				LOGE("cannot initialize swr context");
+			if( swr_init(player->swrCtx) < 0 ) {
+				LOGE(pEnv, pObj, "cannot initialize swr context");
 				return ERROR_INIT_SWR_CONTEXT_FAIL;
 			}
 		}
 	}
 
-	playerData->decodedFrame = av_frame_alloc();
-	if(playerData->decodedFrame == NULL) {
-		LOGE("allocation fail.");
+	player->decodedFrame = av_frame_alloc();
+	if(player->decodedFrame == NULL) {
+		LOGE(pEnv, pObj, "allocation fail.");
 		return ERROR_FRAME_ALLOC_FAIL;
 	}
-	LOGD("naSetup done");
+	LOGD(pEnv, pObj, "naSetup done");
 	return 0;
 }
 
 JNIEXPORT void JNICALL Java_com_misgood_newlplayer_Player_naDecode
 (JNIEnv * pEnv, jobject pObj) {
-	jint 		hashCode			= getHashCode(pEnv, pObj);
-	PlayerData 	*playerData			= playerMap.find(hashCode)->second;
-	AVPacket 	packet;
-	int 		frameCount			= 0;
-	int			gotFrame;
-	uint8_t 	**convertedData		= NULL;
+	AVPacket packet;
+	PlayerData *player	= getPlayerData(pEnv, pObj);
+	int gotFrame			= 0;
+	uint8_t **convertedData;
 
-	LOGD("naDecode start");
+	LOGD(pEnv, pObj, "naDecode start");
+
+	int sumSize = 0;
 
 	av_init_packet(&packet);
-	//packet.data = NULL;
-	//packet.size = 0;
-
-	playerData->stop = 0;
-	while(av_read_frame(playerData->formatCtx, &packet)>=0 && !playerData->stop) {
-		// Is this a packet from the video stream?
-		if(packet.stream_index == playerData->videoStream) {
-			// Decode video frame
-			if(avcodec_decode_video2(playerData->videoCodecCtx, playerData->decodedFrame, &gotFrame, &packet) < 0) {
-				LOGE("error decoding video frame");
+	while(isPlay(pEnv, pObj)) {
+		if( av_read_frame(player->formatCtx, &packet) < 0 ) {
+			LOGE(pEnv, pObj, "cannot read packet");
+		}
+		if(packet.stream_index == player->videoStream) {
+			int readSize = avcodec_decode_video2(player->videoCodecCtx, player->decodedFrame, &gotFrame, &packet);
+			if( readSize < 0) {
+				LOGE(pEnv, pObj, "error decoding video frame");
 			}
-			// Did we get a video frame?
+			else {
+				sumSize += readSize;
+			}
 			if(gotFrame) {
+				int expectSize = avpicture_get_size(player->videoCodecCtx->pix_fmt, player->videoCodecCtx->width, player->videoCodecCtx->height);
+				int getSize = av_frame_get_pkt_size(player->decodedFrame);
+				LOGD(pEnv, pObj, "(read, expect, get): (%d, %d, %d)",  sumSize, expectSize, getSize);
+				sumSize = 0;
 				// Convert the image from its native format to RGBA
 				sws_scale(
-						playerData->swsCtx,
-						(uint8_t const * const *)playerData->decodedFrame->data,
-						playerData->decodedFrame->linesize,
+						player->swsCtx,
+						(uint8_t const * const *)player->decodedFrame->data,
+						player->decodedFrame->linesize,
 						0,
-						playerData->videoCodecCtx->height,
-						playerData->frameRGBA->data,
-						playerData->frameRGBA->linesize
+						player->videoCodecCtx->height,
+						player->frameRGBA->data,
+						player->frameRGBA->linesize
 				);
 				// store decoded and scaled frame to queue
-				uint8_t *buffer = new uint8_t[playerData->avpictureSize];
-				QueueData *queueData = new QueueData(buffer, playerData->videoCodecCtx->width * playerData->videoCodecCtx->height * 4);
-				memcpy(queueData->buffer, playerData->buffer, playerData->videoCodecCtx->width * playerData->videoCodecCtx->height * 4);
-				playerData->videoQueue->push(queueData);
-				// count number of frames
-				++frameCount;
+				uint8_t *buffer = new uint8_t[player->avpictureSize];
+				QueueData *queueData = new QueueData(buffer, player->videoCodecCtx->width * player->videoCodecCtx->height * 4);
+				memcpy(queueData->buffer, player->buffer, player->videoCodecCtx->width * player->videoCodecCtx->height * 4);
+				player->videoQueue->push(queueData);
 			}
 		}
-		else if(packet.stream_index == playerData->audioStream) {
-			if(avcodec_decode_audio4(playerData->audioCodecCtx, playerData->decodedFrame, &gotFrame, &packet) < 0) {
-				LOGE("error decoding audio frame");
+		else if(packet.stream_index == player->audioStream && !isMute(pEnv, pObj)) {
+			int len = avcodec_decode_audio4(player->audioCodecCtx, player->decodedFrame, &gotFrame, &packet);
+			if(len < 0) {
+				LOGE(pEnv, pObj, "error decoding audio frame");
 			}
+			//LOGD(pEnv, pObj, "frame channels: %d", player->decodedFrame->channels);
+			packet.data += len;
+			packet.size -= len;
 			if(gotFrame) {
-				if( av_samples_alloc_array_and_samples(&convertedData, playerData->decodedFrame->linesize, playerData->audioCodecCtx->channels, playerData->decodedFrame->nb_samples, AV_SAMPLE_FMT_S16, 0) < 0 ) {
-					LOGE("cannot allocate audio array");
+				if(!(convertedData = (uint8_t**) calloc(player->audioCodecCtx->channels,	sizeof(*convertedData)))) {
+					LOGE(pEnv, pObj, "cannot allocate converted input sample pointers");
+					return;
+				}
+				if( av_samples_alloc(convertedData, NULL, player->audioCodecCtx->channels, player->decodedFrame->nb_samples, AV_SAMPLE_FMT_S16, 0) < 0 ) {
+					LOGE(pEnv, pObj, "cannot allocate converted input samples");
 					return;
 				}
 				else{
-					int outSamples = swr_convert(playerData->swrCtx, convertedData, playerData->decodedFrame->nb_samples, (uint8_t const **) playerData->decodedFrame->data, playerData->decodedFrame->nb_samples);
+					int outSamples = swr_convert(player->swrCtx, convertedData, player->decodedFrame->nb_samples, (uint8_t const **) player->decodedFrame->data, player->decodedFrame->nb_samples);
 
 					if(outSamples < 0) {
-						LOGE("audio convert error");
+						LOGE(pEnv, pObj, "audio convert error");
 					}
 					else {
-						int bufferSize = av_samples_get_buffer_size(NULL, playerData->decodedFrame->channels, outSamples, AV_SAMPLE_FMT_S16,1);
+						int bufferSize = av_samples_get_buffer_size(NULL, player->decodedFrame->channels, outSamples, AV_SAMPLE_FMT_S16,0);
 						uint8_t *buffer = new uint8_t[bufferSize];
 						QueueData *queueData = new QueueData(buffer, bufferSize);
 						memcpy(queueData->buffer, convertedData[0], bufferSize);
-						playerData->audioQueue->push(queueData);
+						player->audioQueue->push(queueData);
 						av_free(convertedData[0]);
 					}
 				}
 			}
 		}
-		// Free the packet that was allocated by av_read_frame
 		av_free_packet(&packet);
 		// slow down
-		if( playerData->videoQueue->size() > 30 * playerData->frameRate ) {
-			LOGD("decode too fast! slowing down.");
+		if( player->videoQueue->size() > 30 * player->frameRate ) {
+			LOGD(pEnv, pObj, "decode too fast! slowing down.");
 			sleep(10);
 		}
+
 	}
-	LOGD("total No. of frames decoded %d", frameCount);
+	LOGD(pEnv, pObj, "naDecode done");
 }
 
 JNIEXPORT jbyteArray JNICALL Java_com_misgood_newlplayer_Player_naGetAudioData
 (JNIEnv *pEnv, jobject pObj) {
-	jint hashCode = getHashCode(pEnv, pObj);
-	PlayerData *playerData = playerMap.find(hashCode)->second;
-	if(playerData->audioQueue->empty()) {
-		LOGD("audio queue is empty");
+	PlayerData *player = getPlayerData(pEnv, pObj);
+	if(player->audioQueue->empty()) {
+		LOGD(pEnv, pObj, "audio queue is empty");
 		return NULL;
 	}
 	else {
-		int bufferSize = playerData->audioQueue->front()->size;
+		int bufferSize = player->audioQueue->front()->size;
 		jbyteArray buffer = pEnv->NewByteArray(bufferSize);
-		pEnv->SetByteArrayRegion(buffer, 0, bufferSize, (const signed char *) playerData->audioQueue->front()->buffer);
+		pEnv->SetByteArrayRegion(buffer, 0, bufferSize, (const signed char *) player->audioQueue->front()->buffer);
 		// free buffer
-		free(playerData->audioQueue->front()->buffer);
-		playerData->audioQueue->pop();
+		free(player->audioQueue->front()->buffer);
+		player->audioQueue->pop();
 		// write to AudioTrack
-		jclass cls = pEnv->GetObjectClass(pObj);
-		jmethodID mid = pEnv->GetMethodID(cls, "audioTrackWrite", "([BII)V");
-		if( mid == 0 ) {
-			LOGE("cannot call audioTrackWrite");
-			return NULL;
-		}
-		pEnv->CallVoidMethod(pObj, mid, buffer, 0, bufferSize);
-
-		return NULL;
+		return buffer;
 	}
 }
 
 JNIEXPORT jint JNICALL Java_com_misgood_newlplayer_Player_naDisplay
 (JNIEnv * pEnv, jobject pObj) {
-	jint hashCode = getHashCode(pEnv, pObj);
-	PlayerData *playerData = playerMap.find(hashCode)->second;
+	PlayerData *player = getPlayerData(pEnv, pObj);
 	ANativeWindow_Buffer	 windowBuffer;
 	uint8_t *buffer;
 
-	if(playerData->videoQueue->empty() && playerData->audioQueue->empty()) {
-		LOGD("no av data available");
+	if( player->videoQueue->empty() ) {
+		LOGD(pEnv, pObj, "video queue is empty");
 		return ERROR_QUEUE_IS_EMPTY;
 	}
-
-	if( playerData->videoQueue->empty() ) {
-		LOGD("video queue is empty");
-	}
 	else {
-		buffer = playerData->videoQueue->front()->buffer;
-		if (ANativeWindow_lock(playerData->window, &windowBuffer, NULL) < 0) {
-			LOGE("cannot lock window");
+		buffer = player->videoQueue->front()->buffer;
+		if (ANativeWindow_lock(player->window, &windowBuffer, NULL) < 0) {
+			LOGE(pEnv, pObj, "cannot lock window");
 			return ERROR_CANT_LOCK_WINDOW;
 		}
 		else {
-			memcpy(windowBuffer.bits, buffer, playerData->videoCodecCtx->width * playerData->videoCodecCtx->height * 4);
+			memcpy(windowBuffer.bits, buffer, player->videoCodecCtx->width * player->videoCodecCtx->height * 4);
 		}
-		ANativeWindow_unlockAndPost(playerData->window);
+		ANativeWindow_unlockAndPost(player->window);
 		free(buffer);
-		playerData->videoQueue->pop();
-		//return 0;
+		player->videoQueue->pop();
+		return 0;
 	}
-
-	if( playerData->audioQueue->empty() ) {
-		LOGD("audio queue is empty");
-	}
-	else {
-		int bufferSize = playerData->audioQueue->front()->size;
-		jbyteArray buffer = pEnv->NewByteArray(bufferSize);
-		pEnv->SetByteArrayRegion(buffer, 0, bufferSize, (const signed char *) playerData->audioQueue->front()->buffer);
-		playerData->audioQueue->pop();
-		jclass cls = pEnv->GetObjectClass(pObj);
-		jmethodID mid = pEnv->GetMethodID(cls, "audioTrackWrite", "([BII)V");
-		if( mid == 0 ) {
-			LOGE("cannot call audioTrackWrite");
-			return -1;
-		}
-		pEnv->CallVoidMethod(pObj, mid, buffer, 0, bufferSize);
-	}
-
-
-	return 0;
 }
 
 JNIEXPORT void JNICALL Java_com_misgood_newlplayer_Player_naStopDecode
 (JNIEnv * pEnv, jobject pObj) {
-	jint hashCode = getHashCode(pEnv, pObj);
-	PlayerData *playerData = playerMap.find(hashCode)->second;
-	LOGD("wait for stop decode");
-	playerData->stop = 1;
+	PlayerData *player = getPlayerData(pEnv, pObj);
+	LOGD(pEnv, pObj, "wait for stop decode");
 }
 
 JNIEXPORT void JNICALL Java_com_misgood_newlplayer_Player_naRelease
 (JNIEnv * pEnv, jobject pObj) {
-	jint hashCode = getHashCode(pEnv, pObj);
-	PlayerData *playerData = playerMap.find(hashCode)->second;
-
-	LOGD("naRelease start");
-
-	setSurface(playerData, NULL);
+	PlayerData *player = getPlayerData(pEnv, pObj);
+	LOGD(pEnv, pObj, "naRelease start");
+	setSurface(player, NULL);
 	// Free scaled image buffer
-	av_free(playerData->buffer);
+	av_free(player->buffer);
 	// Free the RGB image
-	av_free(playerData->frameRGBA);
+	av_free(player->frameRGBA);
 	// Free the YUV frame
-	av_free(playerData->decodedFrame);
+	av_free(player->decodedFrame);
 	// Close the codec
-	avcodec_close(playerData->videoCodecCtx);
+	avcodec_close(player->videoCodecCtx);
 	// Close the video file
-	avformat_close_input(&playerData->formatCtx);
+	avformat_close_input(&player->formatCtx);
 	// Free SWRContext
-	swr_free(&playerData->swrCtx);
+	swr_free(&player->swrCtx);
 	// Free frame queue
-
-
-	LOGD("naRelease done");
+	LOGD(pEnv, pObj, "naRelease done");
 }
 
 JNIEXPORT void JNICALL Java_com_misgood_newlplayer_Player_naTest
-(JNIEnv *, jobject) {
-	LOGI("native is activated");
+(JNIEnv *pEnv, jobject pObj) {
+	LOGI(pEnv, pObj, "native is activated");
 }
 
 

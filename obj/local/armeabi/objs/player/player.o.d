@@ -46,64 +46,44 @@ obj/local/armeabi/objs/player/player.o: jni/player.cpp \
  /home/misgood/android-ndk-r9c/platforms/android-19/arch-arm/usr/include/android/native_window.h \
  /home/misgood/android-ndk-r9c/platforms/android-19/arch-arm/usr/include/android/rect.h \
  /home/misgood/android-ndk-r9c/platforms/android-19/arch-arm/usr/include/android/native_window_jni.h \
- /home/misgood/android-ndk-r9c/sources/ffmpeg/android/arm/include/libavutil/imgutils.h \
- /home/misgood/android-ndk-r9c/sources/ffmpeg/android/arm/include/libavutil/avutil.h \
- /home/misgood/android-ndk-r9c/sources/ffmpeg/android/arm/include/libavutil/common.h \
+ jni/include/libavcodec/avcodec.h \
  /home/misgood/android-ndk-r9c/platforms/android-19/arch-arm/usr/include/errno.h \
  /home/misgood/android-ndk-r9c/platforms/android-19/arch-arm/usr/include/linux/errno.h \
  /home/misgood/android-ndk-r9c/platforms/android-19/arch-arm/usr/include/asm/errno.h \
  /home/misgood/android-ndk-r9c/platforms/android-19/arch-arm/usr/include/asm-generic/errno.h \
  /home/misgood/android-ndk-r9c/platforms/android-19/arch-arm/usr/include/asm-generic/errno-base.h \
+ jni/include/libavutil/samplefmt.h jni/include/libavutil/avutil.h \
+ jni/include/libavutil/common.h \
  /home/misgood/android-ndk-r9c/platforms/android-19/arch-arm/usr/include/inttypes.h \
  /home/misgood/android-ndk-r9c/platforms/android-19/arch-arm/usr/include/math.h \
  /home/misgood/android-ndk-r9c/platforms/android-19/arch-arm/usr/include/stdlib.h \
  /home/misgood/android-ndk-r9c/platforms/android-19/arch-arm/usr/include/alloca.h \
  /home/misgood/android-ndk-r9c/platforms/android-19/arch-arm/usr/include/strings.h \
  /home/misgood/android-ndk-r9c/platforms/android-19/arch-arm/usr/include/memory.h \
- /home/misgood/android-ndk-r9c/sources/ffmpeg/android/arm/include/libavutil/attributes.h \
- /home/misgood/android-ndk-r9c/sources/ffmpeg/android/arm/include/libavutil/version.h \
- /home/misgood/android-ndk-r9c/sources/ffmpeg/android/arm/include/libavutil/macros.h \
- /home/misgood/android-ndk-r9c/sources/ffmpeg/android/arm/include/libavutil/avconfig.h \
- /home/misgood/android-ndk-r9c/sources/ffmpeg/android/arm/include/libavutil/mem.h \
- /home/misgood/android-ndk-r9c/sources/ffmpeg/android/arm/include/libavutil/error.h \
- /home/misgood/android-ndk-r9c/sources/ffmpeg/android/arm/include/libavutil/mathematics.h \
- /home/misgood/android-ndk-r9c/sources/ffmpeg/android/arm/include/libavutil/rational.h \
- /home/misgood/android-ndk-r9c/sources/ffmpeg/android/arm/include/libavutil/intfloat.h \
- /home/misgood/android-ndk-r9c/sources/ffmpeg/android/arm/include/libavutil/log.h \
- /home/misgood/android-ndk-r9c/sources/ffmpeg/android/arm/include/libavutil/pixfmt.h \
- /home/misgood/android-ndk-r9c/sources/ffmpeg/android/arm/include/libavutil/old_pix_fmts.h \
- /home/misgood/android-ndk-r9c/sources/ffmpeg/android/arm/include/libavutil/pixdesc.h \
- /home/misgood/android-ndk-r9c/sources/ffmpeg/android/arm/include/libavutil/mem.h \
- /home/misgood/android-ndk-r9c/sources/ffmpeg/android/arm/include/libavutil/error.h \
- /home/misgood/android-ndk-r9c/sources/ffmpeg/android/arm/include/libavutil/opt.h \
- /home/misgood/android-ndk-r9c/sources/ffmpeg/android/arm/include/libavutil/dict.h \
- /home/misgood/android-ndk-r9c/sources/ffmpeg/android/arm/include/libavutil/samplefmt.h \
- /home/misgood/android-ndk-r9c/sources/ffmpeg/android/arm/include/libavcodec/avcodec.h \
- /home/misgood/android-ndk-r9c/sources/ffmpeg/android/arm/include/libavutil/samplefmt.h \
- /home/misgood/android-ndk-r9c/sources/ffmpeg/android/arm/include/libavutil/attributes.h \
- /home/misgood/android-ndk-r9c/sources/ffmpeg/android/arm/include/libavutil/avutil.h \
- /home/misgood/android-ndk-r9c/sources/ffmpeg/android/arm/include/libavutil/buffer.h \
- /home/misgood/android-ndk-r9c/sources/ffmpeg/android/arm/include/libavutil/cpu.h \
- /home/misgood/android-ndk-r9c/sources/ffmpeg/android/arm/include/libavutil/channel_layout.h \
- /home/misgood/android-ndk-r9c/sources/ffmpeg/android/arm/include/libavutil/dict.h \
- /home/misgood/android-ndk-r9c/sources/ffmpeg/android/arm/include/libavutil/frame.h \
- /home/misgood/android-ndk-r9c/sources/ffmpeg/android/arm/include/libavutil/buffer.h \
- /home/misgood/android-ndk-r9c/sources/ffmpeg/android/arm/include/libavutil/log.h \
- /home/misgood/android-ndk-r9c/sources/ffmpeg/android/arm/include/libavutil/pixfmt.h \
- /home/misgood/android-ndk-r9c/sources/ffmpeg/android/arm/include/libavutil/rational.h \
- /home/misgood/android-ndk-r9c/sources/ffmpeg/android/arm/include/libavcodec/version.h \
- /home/misgood/android-ndk-r9c/sources/ffmpeg/android/arm/include/libavutil/version.h \
- /home/misgood/android-ndk-r9c/sources/ffmpeg/android/arm/include/libavcodec/old_codec_ids.h \
- /home/misgood/android-ndk-r9c/sources/ffmpeg/android/arm/include/libavutil/common.h \
- /home/misgood/android-ndk-r9c/sources/ffmpeg/android/arm/include/libavformat/avformat.h \
- /home/misgood/android-ndk-r9c/sources/ffmpeg/android/arm/include/libavformat/avio.h \
- /home/misgood/android-ndk-r9c/sources/ffmpeg/android/arm/include/libavformat/version.h \
- /home/misgood/android-ndk-r9c/sources/ffmpeg/android/arm/include/libswscale/swscale.h \
- /home/misgood/android-ndk-r9c/sources/ffmpeg/android/arm/include/libswscale/version.h \
- /home/misgood/android-ndk-r9c/sources/ffmpeg/android/arm/include/libswresample/swresample.h \
- /home/misgood/android-ndk-r9c/sources/ffmpeg/android/arm/include/libswresample/version.h \
- jni/player.h jni/error.h jni/PlayerData.h jni/BlockingQueue.h \
+ jni/include/libavutil/attributes.h jni/include/libavutil/version.h \
+ jni/include/libavutil/macros.h jni/include/libavutil/avconfig.h \
+ jni/include/libavutil/mem.h jni/include/libavutil/error.h \
+ jni/include/libavutil/mathematics.h jni/include/libavutil/rational.h \
+ jni/include/libavutil/intfloat.h jni/include/libavutil/log.h \
+ jni/include/libavutil/pixfmt.h jni/include/libavutil/old_pix_fmts.h \
+ jni/include/libavutil/attributes.h jni/include/libavutil/avutil.h \
+ jni/include/libavutil/buffer.h jni/include/libavutil/cpu.h \
+ jni/include/libavutil/channel_layout.h jni/include/libavutil/dict.h \
+ jni/include/libavutil/frame.h jni/include/libavutil/buffer.h \
+ jni/include/libavutil/dict.h jni/include/libavutil/samplefmt.h \
+ jni/include/libavutil/log.h jni/include/libavutil/pixfmt.h \
+ jni/include/libavutil/rational.h jni/include/libavcodec/version.h \
+ jni/include/libavutil/version.h jni/include/libavutil/mem.h \
+ jni/include/libavcodec/old_codec_ids.h jni/include/libavutil/common.h \
+ jni/include/libavformat/avformat.h jni/include/libavformat/avio.h \
+ jni/include/libavformat/version.h jni/include/libswscale/swscale.h \
+ jni/include/libswscale/version.h jni/include/libswresample/swresample.h \
+ jni/include/libswresample/version.h jni/include/libavutil/imgutils.h \
+ jni/include/libavutil/pixdesc.h jni/include/libavutil/error.h \
+ jni/include/libavutil/opt.h jni/player.h jni/error.h jni/PlayerData.h \
+ jni/BlockingQueue.h \
  /home/misgood/android-ndk-r9c/sources/cxx-stl/gnu-libstdc++/4.8/include/queue \
+ /home/misgood/android-ndk-r9c/sources/cxx-stl/gnu-libstdc++/4.8/include/limits \
  jni/QueueData.h
 
 /home/misgood/android-ndk-r9c/platforms/android-19/arch-arm/usr/include/stdio.h:
@@ -200,11 +180,7 @@ obj/local/armeabi/objs/player/player.o: jni/player.cpp \
 
 /home/misgood/android-ndk-r9c/platforms/android-19/arch-arm/usr/include/android/native_window_jni.h:
 
-/home/misgood/android-ndk-r9c/sources/ffmpeg/android/arm/include/libavutil/imgutils.h:
-
-/home/misgood/android-ndk-r9c/sources/ffmpeg/android/arm/include/libavutil/avutil.h:
-
-/home/misgood/android-ndk-r9c/sources/ffmpeg/android/arm/include/libavutil/common.h:
+jni/include/libavcodec/avcodec.h:
 
 /home/misgood/android-ndk-r9c/platforms/android-19/arch-arm/usr/include/errno.h:
 
@@ -215,6 +191,12 @@ obj/local/armeabi/objs/player/player.o: jni/player.cpp \
 /home/misgood/android-ndk-r9c/platforms/android-19/arch-arm/usr/include/asm-generic/errno.h:
 
 /home/misgood/android-ndk-r9c/platforms/android-19/arch-arm/usr/include/asm-generic/errno-base.h:
+
+jni/include/libavutil/samplefmt.h:
+
+jni/include/libavutil/avutil.h:
+
+jni/include/libavutil/common.h:
 
 /home/misgood/android-ndk-r9c/platforms/android-19/arch-arm/usr/include/inttypes.h:
 
@@ -228,89 +210,87 @@ obj/local/armeabi/objs/player/player.o: jni/player.cpp \
 
 /home/misgood/android-ndk-r9c/platforms/android-19/arch-arm/usr/include/memory.h:
 
-/home/misgood/android-ndk-r9c/sources/ffmpeg/android/arm/include/libavutil/attributes.h:
+jni/include/libavutil/attributes.h:
 
-/home/misgood/android-ndk-r9c/sources/ffmpeg/android/arm/include/libavutil/version.h:
+jni/include/libavutil/version.h:
 
-/home/misgood/android-ndk-r9c/sources/ffmpeg/android/arm/include/libavutil/macros.h:
+jni/include/libavutil/macros.h:
 
-/home/misgood/android-ndk-r9c/sources/ffmpeg/android/arm/include/libavutil/avconfig.h:
+jni/include/libavutil/avconfig.h:
 
-/home/misgood/android-ndk-r9c/sources/ffmpeg/android/arm/include/libavutil/mem.h:
+jni/include/libavutil/mem.h:
 
-/home/misgood/android-ndk-r9c/sources/ffmpeg/android/arm/include/libavutil/error.h:
+jni/include/libavutil/error.h:
 
-/home/misgood/android-ndk-r9c/sources/ffmpeg/android/arm/include/libavutil/mathematics.h:
+jni/include/libavutil/mathematics.h:
 
-/home/misgood/android-ndk-r9c/sources/ffmpeg/android/arm/include/libavutil/rational.h:
+jni/include/libavutil/rational.h:
 
-/home/misgood/android-ndk-r9c/sources/ffmpeg/android/arm/include/libavutil/intfloat.h:
+jni/include/libavutil/intfloat.h:
 
-/home/misgood/android-ndk-r9c/sources/ffmpeg/android/arm/include/libavutil/log.h:
+jni/include/libavutil/log.h:
 
-/home/misgood/android-ndk-r9c/sources/ffmpeg/android/arm/include/libavutil/pixfmt.h:
+jni/include/libavutil/pixfmt.h:
 
-/home/misgood/android-ndk-r9c/sources/ffmpeg/android/arm/include/libavutil/old_pix_fmts.h:
+jni/include/libavutil/old_pix_fmts.h:
 
-/home/misgood/android-ndk-r9c/sources/ffmpeg/android/arm/include/libavutil/pixdesc.h:
+jni/include/libavutil/attributes.h:
 
-/home/misgood/android-ndk-r9c/sources/ffmpeg/android/arm/include/libavutil/mem.h:
+jni/include/libavutil/avutil.h:
 
-/home/misgood/android-ndk-r9c/sources/ffmpeg/android/arm/include/libavutil/error.h:
+jni/include/libavutil/buffer.h:
 
-/home/misgood/android-ndk-r9c/sources/ffmpeg/android/arm/include/libavutil/opt.h:
+jni/include/libavutil/cpu.h:
 
-/home/misgood/android-ndk-r9c/sources/ffmpeg/android/arm/include/libavutil/dict.h:
+jni/include/libavutil/channel_layout.h:
 
-/home/misgood/android-ndk-r9c/sources/ffmpeg/android/arm/include/libavutil/samplefmt.h:
+jni/include/libavutil/dict.h:
 
-/home/misgood/android-ndk-r9c/sources/ffmpeg/android/arm/include/libavcodec/avcodec.h:
+jni/include/libavutil/frame.h:
 
-/home/misgood/android-ndk-r9c/sources/ffmpeg/android/arm/include/libavutil/samplefmt.h:
+jni/include/libavutil/buffer.h:
 
-/home/misgood/android-ndk-r9c/sources/ffmpeg/android/arm/include/libavutil/attributes.h:
+jni/include/libavutil/dict.h:
 
-/home/misgood/android-ndk-r9c/sources/ffmpeg/android/arm/include/libavutil/avutil.h:
+jni/include/libavutil/samplefmt.h:
 
-/home/misgood/android-ndk-r9c/sources/ffmpeg/android/arm/include/libavutil/buffer.h:
+jni/include/libavutil/log.h:
 
-/home/misgood/android-ndk-r9c/sources/ffmpeg/android/arm/include/libavutil/cpu.h:
+jni/include/libavutil/pixfmt.h:
 
-/home/misgood/android-ndk-r9c/sources/ffmpeg/android/arm/include/libavutil/channel_layout.h:
+jni/include/libavutil/rational.h:
 
-/home/misgood/android-ndk-r9c/sources/ffmpeg/android/arm/include/libavutil/dict.h:
+jni/include/libavcodec/version.h:
 
-/home/misgood/android-ndk-r9c/sources/ffmpeg/android/arm/include/libavutil/frame.h:
+jni/include/libavutil/version.h:
 
-/home/misgood/android-ndk-r9c/sources/ffmpeg/android/arm/include/libavutil/buffer.h:
+jni/include/libavutil/mem.h:
 
-/home/misgood/android-ndk-r9c/sources/ffmpeg/android/arm/include/libavutil/log.h:
+jni/include/libavcodec/old_codec_ids.h:
 
-/home/misgood/android-ndk-r9c/sources/ffmpeg/android/arm/include/libavutil/pixfmt.h:
+jni/include/libavutil/common.h:
 
-/home/misgood/android-ndk-r9c/sources/ffmpeg/android/arm/include/libavutil/rational.h:
+jni/include/libavformat/avformat.h:
 
-/home/misgood/android-ndk-r9c/sources/ffmpeg/android/arm/include/libavcodec/version.h:
+jni/include/libavformat/avio.h:
 
-/home/misgood/android-ndk-r9c/sources/ffmpeg/android/arm/include/libavutil/version.h:
+jni/include/libavformat/version.h:
 
-/home/misgood/android-ndk-r9c/sources/ffmpeg/android/arm/include/libavcodec/old_codec_ids.h:
+jni/include/libswscale/swscale.h:
 
-/home/misgood/android-ndk-r9c/sources/ffmpeg/android/arm/include/libavutil/common.h:
+jni/include/libswscale/version.h:
 
-/home/misgood/android-ndk-r9c/sources/ffmpeg/android/arm/include/libavformat/avformat.h:
+jni/include/libswresample/swresample.h:
 
-/home/misgood/android-ndk-r9c/sources/ffmpeg/android/arm/include/libavformat/avio.h:
+jni/include/libswresample/version.h:
 
-/home/misgood/android-ndk-r9c/sources/ffmpeg/android/arm/include/libavformat/version.h:
+jni/include/libavutil/imgutils.h:
 
-/home/misgood/android-ndk-r9c/sources/ffmpeg/android/arm/include/libswscale/swscale.h:
+jni/include/libavutil/pixdesc.h:
 
-/home/misgood/android-ndk-r9c/sources/ffmpeg/android/arm/include/libswscale/version.h:
+jni/include/libavutil/error.h:
 
-/home/misgood/android-ndk-r9c/sources/ffmpeg/android/arm/include/libswresample/swresample.h:
-
-/home/misgood/android-ndk-r9c/sources/ffmpeg/android/arm/include/libswresample/version.h:
+jni/include/libavutil/opt.h:
 
 jni/player.h:
 
@@ -321,5 +301,7 @@ jni/PlayerData.h:
 jni/BlockingQueue.h:
 
 /home/misgood/android-ndk-r9c/sources/cxx-stl/gnu-libstdc++/4.8/include/queue:
+
+/home/misgood/android-ndk-r9c/sources/cxx-stl/gnu-libstdc++/4.8/include/limits:
 
 jni/QueueData.h:

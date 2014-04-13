@@ -1,5 +1,6 @@
 /*
  * BlockingQueue.h
+ *  Fixed Size Queue with mutex
  *
  *  Created on: 2014/2/20
  *      Author: misgood
@@ -7,14 +8,23 @@
 
 #include <pthread.h>
 #include <queue>
+#include <limits>
 
 #ifndef BLOCKINGQUEUE_H_
 #define BLOCKINGQUEUE_H_
 
+#define MAX_INT std::numeric_limits<int>::max()
+
 template<class T> class BlockingQueue{
 public:
+	BlockingQueue(int size) {
+		pthread_mutex_init(&lock, NULL);
+		maxSize = size;
+	}
+
 	BlockingQueue() {
 		pthread_mutex_init(&lock, NULL);
+		maxSize = MAX_INT;
 	}
 
 	~BlockingQueue() {
@@ -25,6 +35,9 @@ public:
 
 	void push(T val) {
 		pthread_mutex_lock(&lock);
+		if(queue.size() == maxSize) {
+			queue.pop();
+		}
 		queue.push(val);
 		pthread_mutex_unlock(&lock);
 	}
@@ -62,6 +75,7 @@ public:
 private:
 	pthread_mutex_t lock;
 	std::queue<T> queue;
+	int maxSize;
 };
 
 #endif /* BLOCKINGQUEUE_H_ */

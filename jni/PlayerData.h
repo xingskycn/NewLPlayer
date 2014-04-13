@@ -27,7 +27,7 @@ extern "C" {
 
 class PlayerData {
 public:
-	PlayerData(JNIEnv *, jobject);
+	PlayerData(JNIEnv *, jobject, jboolean);
 	~PlayerData();
 
 	JNIEnv				*env = NULL;
@@ -41,7 +41,7 @@ public:
 
 	ANativeWindow		*window = NULL;
 
-	AVFormatContext 	*formatCtx = NULL;
+	AVFormatContext		*formatCtx = NULL;
 	AVCodecContext		*audioCodecCtx = NULL;
 	AVCodecContext		*videoCodecCtx = NULL;
 	AVFrame				*decodedFrame = NULL;
@@ -52,8 +52,6 @@ public:
 
 	BlockingQueue<QueueData*>	*videoQueue = NULL;
 	BlockingQueue<QueueData*>	*audioQueue = NULL;
-
-	bool				stop = false;
 };
 
 #endif /* PLAYERDATA_H_ */
