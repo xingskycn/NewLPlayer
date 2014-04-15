@@ -155,6 +155,16 @@ JNIEXPORT jint JNICALL Java_com_misgood_newlplayer_Player_naInit
 	return 0;
 }
 
+JNIEXPORT jint JNICALL Java_com_misgood_newlplayer_Player_naSetSurface
+(JNIEnv *pEnv, jobject pObj) {
+	PlayerData *player	= getPlayerData(pEnv, pObj);
+	jobject pSurface		= getSurface(pEnv, pObj);
+	if (pSurface) {
+		player->window = ANativeWindow_fromSurface(pEnv, pSurface);
+	}
+	ANativeWindow_setBuffersGeometry(player->window, player->videoCodecCtx->width, player->videoCodecCtx->height, WINDOW_FORMAT_RGBA_8888);
+}
+
 JNIEXPORT jintArray JNICALL Java_com_misgood_newlplayer_Player_naGetVideoRes
 (JNIEnv *pEnv, jobject pObj) {
 	PlayerData *player = getPlayerData(pEnv, pObj);
@@ -187,15 +197,6 @@ JNIEXPORT jint JNICALL Java_com_misgood_newlplayer_Player_naGetSampleRate
 JNIEXPORT jint JNICALL Java_com_misgood_newlplayer_Player_naGetChannels
 (JNIEnv * pEnv, jobject pObj) {
 	return getPlayerData(pEnv, pObj)->audioCodecCtx->channels;
-}
-
-void setSurface(PlayerData *pd, jobject pSurface) {
-	if (pSurface) {
-		pd->window = ANativeWindow_fromSurface(pd->env, pSurface);
-	}
-	else if(pd->window) {
-		ANativeWindow_release(pd->window);
-	}
 }
 
 JNIEXPORT jint JNICALL Java_com_misgood_newlplayer_Player_naSetup
@@ -268,9 +269,9 @@ JNIEXPORT jint JNICALL Java_com_misgood_newlplayer_Player_naSetup
 			return ERROR_FRAME_ALLOC_FAIL;
 		}
 		// set surface
-		setSurface(player, pSurface);
+		//setSurface(player, pEnv, pSurface);
 		// set format and size of window buffer
-		ANativeWindow_setBuffersGeometry(player->window, player->videoCodecCtx->width, player->videoCodecCtx->height, WINDOW_FORMAT_RGBA_8888);
+		//ANativeWindow_setBuffersGeometry(player->window, player->videoCodecCtx->width, player->videoCodecCtx->height, WINDOW_FORMAT_RGBA_8888);
 		//get the scaling context
 		if( !(player->swsCtx = sws_getCachedContext (
 				NULL,
@@ -481,7 +482,8 @@ JNIEXPORT void JNICALL Java_com_misgood_newlplayer_Player_naRelease
 (JNIEnv * pEnv, jobject pObj) {
 	PlayerData *player = getPlayerData(pEnv, pObj);
 	LOGD(pEnv, pObj, "naRelease start");
-	setSurface(player, NULL);
+	// Release window
+	ANativeWindow_release(player->window);
 	// Free scaled image buffer
 	av_free(player->buffer);
 	// Free the RGB image

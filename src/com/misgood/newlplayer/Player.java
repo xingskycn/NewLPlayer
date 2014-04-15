@@ -133,7 +133,7 @@ public class Player {
 	@Deprecated
 	public void prepareAsync() {
 		Log.d(TAG, "prepareAsync");
-		new PrepareTask(mSurface).executeOnExecutor(mExecutor);
+		new PrepareTask().executeOnExecutor(mExecutor);
 	}
 	
 	public void prepare() {
@@ -142,6 +142,7 @@ public class Player {
 			Log.e(TAG, "native setup fail");
 			return;
 		}
+		naSetSurface();
 		// Video
 		int[] videoRes = naGetVideoRes();
 		if( videoRes == null ) {
@@ -278,26 +279,28 @@ public class Player {
 	/* 
 	 * mSurface & hashCode are used for native access
 	 */
-	class PrepareTask extends AsyncTask<Object, Object, Object> {
-		private Surface mSurface;
-		public PrepareTask(Surface s) {
-			this.mSurface = s;
-		}
+	class PrepareTask extends AsyncTask<Object, Object, Integer> {
 		@Override
 		public int hashCode() {
 			return Player.this.hashCode();
 		}
 		@Override
-		protected Object doInBackground(Object... arg0) {
-			if(naSetup() != 0) {
+		protected Integer doInBackground(Object... arg0) {
+			return naSetup();
+		}
+		@Override
+		protected void onPostExecute(Integer result) {
+			if(result != 0) {
 				Log.e(TAG, "native setup fail");
-				return null;
+				return;
 			}
+			// set surface natively
+			naSetSurface();
 			// Video
 			int[] videoRes = naGetVideoRes();
 			if( videoRes == null ) {
 				Log.e(TAG, "native get video resolution fail");
-				return null;
+				return;
 			}
 			mVideoWidth = videoRes[0];
 			mVideoHeight = videoRes[1];
@@ -305,7 +308,7 @@ public class Player {
 			mFps = naGetFps();
 			if( mFps == 0 ) {
 				Log.e(TAG, "cannot get fps");
-				return null;
+				return;
 			}
 			Log.i(TAG, "fps: "+ mFps);
 			//resetVideoSize();
@@ -326,7 +329,6 @@ public class Player {
 			if( mOnPreparedListener != null ) {
 				mOnPreparedListener.onPrepared();
 			}
-			return null;
 		}
 	}
 	
@@ -453,6 +455,7 @@ public class Player {
 
 	private native int naInit(); 
 	private native int naSetup();
+	private native int naSetSurface();
 	private native int[] naGetVideoRes();
 	private native double naGetFps();
 	private native int naGetSampleRate();

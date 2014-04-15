@@ -30,9 +30,6 @@ public:
 	PlayerData(JNIEnv *, jobject, jboolean);
 	~PlayerData();
 
-	JNIEnv				*env = NULL;
-	jobject				thiz;
-
 	char				*videoFileName = NULL;
 	int					avpictureSize = -1;
 	int					videoStream = -1;

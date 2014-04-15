@@ -16,8 +16,6 @@ PlayerData::PlayerData(JNIEnv *pEnv, jobject pObj, jboolean isBuffer) {
 		this->audioQueue = new BlockingQueue<QueueData*>(1);
 		this->videoQueue = new BlockingQueue<QueueData*>(1);
 	}
-	this->env = pEnv;
-	this->thiz = pObj;
 }
 
 PlayerData::~PlayerData() {

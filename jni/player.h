@@ -7,6 +7,12 @@
 #ifdef __cplusplus
 extern "C" {
 #endif
+#undef com_misgood_newlplayer_Player_SOURCE_LOCAL
+#define com_misgood_newlplayer_Player_SOURCE_LOCAL 0L
+#undef com_misgood_newlplayer_Player_SOURCE_REMOTE
+#define com_misgood_newlplayer_Player_SOURCE_REMOTE 1L
+#undef com_misgood_newlplayer_Player_SOURCE_LIVE
+#define com_misgood_newlplayer_Player_SOURCE_LIVE 2L
 /*
  * Class:     com_misgood_newlplayer_Player
  * Method:    naInit
@@ -18,9 +24,17 @@ JNIEXPORT jint JNICALL Java_com_misgood_newlplayer_Player_naInit
 /*
  * Class:     com_misgood_newlplayer_Player
  * Method:    naSetup
- * Signature: (Ljava/lang/String;Landroid/view/Surface;)I
+ * Signature: ()I
  */
 JNIEXPORT jint JNICALL Java_com_misgood_newlplayer_Player_naSetup
+  (JNIEnv *, jobject);
+
+/*
+ * Class:     com_misgood_newlplayer_Player
+ * Method:    naSetSurface
+ * Signature: ()I
+ */
+JNIEXPORT jint JNICALL Java_com_misgood_newlplayer_Player_naSetSurface
   (JNIEnv *, jobject);
 
 /*
@@ -53,14 +67,6 @@ JNIEXPORT jint JNICALL Java_com_misgood_newlplayer_Player_naGetSampleRate
  * Signature: ()I
  */
 JNIEXPORT jint JNICALL Java_com_misgood_newlplayer_Player_naGetChannels
-  (JNIEnv *, jobject);
-
-/*
- * Class:     com_misgood_newlplayer_Player
- * Method:    naReadStream
- * Signature: ()V
- */
-JNIEXPORT void JNICALL Java_com_misgood_newlplayer_Player_naReadStream
   (JNIEnv *, jobject);
 
 /*
