@@ -25,7 +25,7 @@ extern "C" {
 #include "PlayerData.h"
 
 #define LOG_TAG "Native"
-#define VERSION "0.1.2"
+#define VERSION "0.3.0"
 
 std::map<jint, PlayerData*> playerMap;
 JavaVM *jvm;
@@ -191,12 +191,14 @@ JNIEXPORT jdouble JNICALL Java_com_misgood_newlplayer_Player_naGetFps
 
 JNIEXPORT jint JNICALL Java_com_misgood_newlplayer_Player_naGetSampleRate
 (JNIEnv * pEnv, jobject pObj) {
-	return getPlayerData(pEnv, pObj)->audioCodecCtx->sample_rate;
+	AVCodecContext *ctx = getPlayerData(pEnv, pObj)->audioCodecCtx;
+	return ctx != NULL ? ctx->sample_rate : 0;
 }
 
 JNIEXPORT jint JNICALL Java_com_misgood_newlplayer_Player_naGetChannels
 (JNIEnv * pEnv, jobject pObj) {
-	return getPlayerData(pEnv, pObj)->audioCodecCtx->channels;
+	AVCodecContext *ctx = getPlayerData(pEnv, pObj)->audioCodecCtx;
+	return ctx != NULL ? ctx->channels : 0;
 }
 
 JNIEXPORT jint JNICALL Java_com_misgood_newlplayer_Player_naSetup
@@ -339,9 +341,10 @@ JNIEXPORT jint JNICALL Java_com_misgood_newlplayer_Player_naSetup
 JNIEXPORT void JNICALL Java_com_misgood_newlplayer_Player_naDecode
 (JNIEnv * pEnv, jobject pObj) {
 	AVPacket packet;
-	PlayerData *player	= getPlayerData(pEnv, pObj);
-	int gotFrame			= 0;
+	PlayerData *player			= getPlayerData(pEnv, pObj);
+	int gotFrame				= 0;
 	uint8_t **convertedData;
+	int isSkip 					= 0;
 
 	LOGD(pEnv, pObj, "naDecode start");
 
@@ -354,6 +357,17 @@ JNIEXPORT void JNICALL Java_com_misgood_newlplayer_Player_naDecode
 		}
 		if(packet.stream_index == player->videoStream) {
 			int readSize = avcodec_decode_video2(player->videoCodecCtx, player->decodedFrame, &gotFrame, &packet);
+			if( !player->decodedFrame->key_frame && isSkip ) {
+				continue;
+			}
+			else if( player->decodedFrame->key_frame && isSkip ) {
+				isSkip = 0;
+			}
+			if( player->decodedFrame->is_corrupt ) {
+				LOGD(pEnv, pObj, "decodeFrame is corrupt");
+				isSkip = 1;
+				continue;
+			}
 			if( readSize < 0) {
 				LOGE(pEnv, pObj, "error decoding video frame");
 			}

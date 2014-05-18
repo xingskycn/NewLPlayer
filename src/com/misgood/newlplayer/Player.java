@@ -162,10 +162,10 @@ public class Player {
 
 		// Audio
 		mSampleRate = naGetSampleRate();
-		int channelNumber = naGetChannels(); 
-		int channelConfig = channelNumber >= 2 ? AudioFormat.CHANNEL_OUT_STEREO : AudioFormat.CHANNEL_OUT_MONO;
 		Log.i(TAG, "sample rate: " + mSampleRate);
+		int channelNumber = naGetChannels(); 
 		Log.i(TAG, "channel number: " + channelNumber);
+		int channelConfig = channelNumber >= 2 ? AudioFormat.CHANNEL_OUT_STEREO : AudioFormat.CHANNEL_OUT_MONO;
 		Log.i(TAG, "channel config: " + channelConfig);
 
 		mAudioTrackBufferSize = AudioTrack.getMinBufferSize(mSampleRate, channelConfig, mSampleFormat);
